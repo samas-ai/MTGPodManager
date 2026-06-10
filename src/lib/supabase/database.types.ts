@@ -139,6 +139,7 @@ export type Database = {
           commander_snapshot: string | null;
           verified: boolean;
           joined_at: string;
+          placement: number | null;
         };
         Insert: {
           id?: string;
@@ -149,6 +150,7 @@ export type Database = {
           commander_snapshot?: string | null;
           verified?: boolean;
           joined_at?: string;
+          placement?: number | null;
         };
         Update: {
           id?: string;
@@ -159,6 +161,7 @@ export type Database = {
           commander_snapshot?: string | null;
           verified?: boolean;
           joined_at?: string;
+          placement?: number | null;
         };
         Relationships: [];
       };
@@ -190,7 +193,10 @@ export type Database = {
       create_invite: { Args: { p_group_id: string }; Returns: string };
       accept_invite: { Args: { p_code: string }; Returns: string };
       is_group_member: { Args: { g: string }; Returns: boolean };
-      finalize_match: { Args: { p_match_id: string; p_winner: string }; Returns: undefined };
+      finalize_match: {
+        Args: { p_match_id: string; p_winner: string; p_placements?: Json };
+        Returns: undefined;
+      };
     };
     Enums: { group_role: GroupRole; deck_source: DeckSource; match_status: MatchStatus };
     CompositeTypes: {

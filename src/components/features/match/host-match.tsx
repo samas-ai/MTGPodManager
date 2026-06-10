@@ -57,6 +57,7 @@ export function HostMatch({
   const [seatCount, setSeatCount] = useState<SeatCount>(4);
   const [seats, setSeats] = useState<Seat[]>(() => initSeats(4));
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
+  const [winnerId, setWinnerId] = useState("");
 
   function setCount(count: SeatCount) {
     setSeatCount(count);
@@ -229,7 +230,8 @@ export function HostMatch({
                   id="winnerId"
                   name="winnerId"
                   required
-                  defaultValue=""
+                  value={winnerId}
+                  onChange={(e) => setWinnerId(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="" disabled>
@@ -242,6 +244,41 @@ export function HostMatch({
                   ))}
                 </select>
               </div>
+
+              {/* Optional finishing order: leave every place blank to record
+                  winner-only; the finalize_match RPC validates a full order. */}
+              {winnerId !== "" && verified.length > 2 && (
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="text-sm font-medium">
+                    Finishing order <span className="text-muted-foreground">(optional)</span>
+                  </legend>
+                  {verified
+                    .filter((p) => p.userId !== winnerId)
+                    .map((p) => (
+                      <div key={p.userId} className="flex items-center justify-between gap-2">
+                        <label htmlFor={`place_${p.userId}`} className="truncate text-sm">
+                          {p.name}
+                        </label>
+                        <select
+                          id={`place_${p.userId}`}
+                          name={`place_${p.userId}`}
+                          defaultValue=""
+                          className="h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="">—</option>
+                          {Array.from({ length: verified.length - 1 }, (_, i) => i + 2).map(
+                            (place) => (
+                              <option key={place} value={place}>
+                                {place === 2 ? "2nd" : place === 3 ? "3rd" : `${place}th`}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </div>
+                    ))}
+                </fieldset>
+              )}
+
               <Button type="submit">Finalize match</Button>
             </form>
           ) : (

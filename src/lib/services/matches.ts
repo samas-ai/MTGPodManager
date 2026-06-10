@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { groupIdSchema } from "@/lib/validators/groups";
-import { finalizeMatchSchema, verifyParticipationSchema } from "@/lib/validators/matches";
+import {
+  finalizeMatchSchema,
+  placementsFromForm,
+  verifyParticipationSchema,
+} from "@/lib/validators/matches";
 import { safePath } from "@/lib/safe-path";
 
 /**
@@ -29,6 +33,11 @@ function friendlyFinalizeError(rpcError: string): string {
     return "The winner must be one of the players.";
   if (rpcError.includes("only_host_can_finalize")) return "Only the host can finalize.";
   if (rpcError.includes("match_not_open")) return "This match is already finalized.";
+  if (rpcError.includes("placements_must_cover_all_participants"))
+    return "Give every player a place, or leave the order blank.";
+  if (rpcError.includes("duplicate_placement")) return "Two players can't share a place.";
+  if (rpcError.includes("invalid_placement_value") || rpcError.includes("winner_must_be_first"))
+    return "That finishing order doesn't add up — check the places.";
   return "Couldn't finalize the match. Please try again.";
 }
 
@@ -109,9 +118,12 @@ export async function verifyParticipation(formData: FormData): Promise<void> {
 }
 
 export async function finalizeMatch(formData: FormData): Promise<void> {
+  const winnerRaw = formData.get("winnerId");
   const parsed = finalizeMatchSchema.safeParse({
     matchId: formData.get("matchId"),
-    winnerId: formData.get("winnerId"),
+    winnerId: winnerRaw,
+    placements:
+      typeof winnerRaw === "string" ? placementsFromForm(formData, winnerRaw) : undefined,
   });
   if (!parsed.success) {
     const back = safePath(formData.get("redirectTo"), "/groups");
@@ -135,6 +147,7 @@ export async function finalizeMatch(formData: FormData): Promise<void> {
   const { error } = await supabase.rpc("finalize_match", {
     p_match_id: parsed.data.matchId,
     p_winner: parsed.data.winnerId,
+    ...(parsed.data.placements ? { p_placements: parsed.data.placements } : {}),
   });
 
   if (error) {
