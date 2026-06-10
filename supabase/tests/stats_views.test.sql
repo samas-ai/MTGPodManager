@@ -13,6 +13,7 @@ insert into auth.users (id, email) values
   ('22222222-2222-2222-2222-222222222222', 'bob@example.com'),
   ('44444444-4444-4444-4444-444444444444', 'dave@example.com');  -- non-member
 
+create schema if not exists tests;
 create or replace function tests.act_as(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
