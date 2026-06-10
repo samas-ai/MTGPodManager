@@ -108,6 +108,8 @@ export type Database = {
           winner_user_id: string | null;
           started_at: string;
           finalized_at: string | null;
+          notes: string | null;
+          tags: string[] | null;
         };
         Insert: {
           id?: string;
@@ -117,6 +119,8 @@ export type Database = {
           winner_user_id?: string | null;
           started_at?: string;
           finalized_at?: string | null;
+          notes?: string | null;
+          tags?: string[] | null;
         };
         Update: {
           id?: string;
@@ -126,6 +130,8 @@ export type Database = {
           winner_user_id?: string | null;
           started_at?: string;
           finalized_at?: string | null;
+          notes?: string | null;
+          tags?: string[] | null;
         };
         Relationships: [];
       };

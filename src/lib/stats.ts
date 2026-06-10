@@ -31,6 +31,8 @@ export interface RecentMatch {
   id: string;
   winnerName: string | null;
   finalizedAt: string | null;
+  notes: string | null;
+  tags: string[];
 }
 
 export interface MatchEvent {
@@ -244,7 +246,7 @@ export async function getRecentMatches(
 ): Promise<RecentMatch[]> {
   const { data } = await supabase
     .from("matches")
-    .select("id, winner_user_id, finalized_at")
+    .select("id, winner_user_id, finalized_at, notes, tags")
     .eq("group_id", groupId)
     .eq("status", "finalized")
     .order("finalized_at", { ascending: false })
@@ -260,5 +262,7 @@ export async function getRecentMatches(
     id: r.id,
     winnerName: r.winner_user_id ? (names.get(r.winner_user_id) ?? "Player") : null,
     finalizedAt: r.finalized_at,
+    notes: r.notes,
+    tags: r.tags ?? [],
   }));
 }

@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { groupIdSchema } from "@/lib/validators/groups";
 import {
   finalizeMatchSchema,
+  matchMetaSchema,
   placementsFromForm,
+  tagsFromInput,
   verifyParticipationSchema,
 } from "@/lib/validators/matches";
 import { safePath } from "@/lib/safe-path";
@@ -115,6 +117,42 @@ export async function verifyParticipation(formData: FormData): Promise<void> {
   revalidatePath(`/match/${parsed.data.matchId}/host`);
   revalidatePath(`/match/${parsed.data.matchId}/join`);
   redirect(`${redirectTo}?message=${enc("You're verified.")}`);
+}
+
+export async function updateMatchMeta(formData: FormData): Promise<void> {
+  const rawTags = formData.get("tags");
+  const parsed = matchMetaSchema.safeParse({
+    matchId: formData.get("matchId"),
+    notes: typeof formData.get("notes") === "string" ? formData.get("notes") : undefined,
+    tags: typeof rawTags === "string" ? tagsFromInput(rawTags) : undefined,
+  });
+  const hostPath = parsed.success ? `/match/${parsed.data.matchId}/host` : "/groups";
+  if (!parsed.success) {
+    redirect(`/groups?error=${enc(parsed.error.issues[0]?.message ?? "Couldn't save notes.")}`);
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+
+  // RLS (matches_update_open) scopes this to the host while the match is open.
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      notes: parsed.data.notes === "" ? null : (parsed.data.notes ?? null),
+      tags: parsed.data.tags && parsed.data.tags.length > 0 ? parsed.data.tags : null,
+    })
+    .eq("id", parsed.data.matchId);
+
+  if (error) {
+    console.error("[matches] updateMatchMeta failed", error.message);
+    redirect(`${hostPath}?error=${enc("Couldn't save the notes — is the match still open?")}`);
+  }
+
+  revalidatePath(hostPath);
+  redirect(`${hostPath}?message=${enc("Notes saved.")}`);
 }
 
 export async function finalizeMatch(formData: FormData): Promise<void> {

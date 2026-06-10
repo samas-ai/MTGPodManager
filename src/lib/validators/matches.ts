@@ -16,6 +16,27 @@ export const finalizeMatchSchema = z.object({
   placements: z.record(z.string().uuid(), z.number().int().min(1)).optional(),
 });
 
+export const matchMetaSchema = z.object({
+  matchId: z.string().uuid("Invalid match."),
+  notes: z.string().trim().max(500, "Notes are capped at 500 characters.").optional(),
+  tags: z
+    .array(z.string().trim().min(1).max(24, "Tags are capped at 24 characters."))
+    .max(5, "Up to 5 tags.")
+    .optional(),
+});
+
+/** Splits a comma-separated tag input into trimmed, deduped, lowercased tags. */
+export function tagsFromInput(raw: string): string[] {
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter((t) => t.length > 0),
+    ),
+  ];
+}
+
 /**
  * Assembles the optional placements object from `place_<userId>` form fields.
  * Empty selects are ignored; the winner is always placed 1st. Returns undefined

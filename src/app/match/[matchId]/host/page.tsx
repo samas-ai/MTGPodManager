@@ -4,7 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { HostMatch, type Participant } from "@/components/features/match/host-match";
 import { VerifyDeck, type DeckOption } from "@/components/features/match/verify-deck";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/server";
+import { updateMatchMeta } from "@/lib/services/matches";
 
 export const metadata = { title: "Live match" };
 
@@ -24,7 +27,7 @@ export default async function HostMatchPage({
   // RLS (matches_select) returns the row only to group members; else null -> 404.
   const { data: match } = await supabase
     .from("matches")
-    .select("id, group_id, host_id, status")
+    .select("id, group_id, host_id, status, notes, tags")
     .eq("id", params.matchId)
     .maybeSingle();
 
@@ -98,6 +101,44 @@ export default async function HostMatchPage({
       </Card>
 
       <HostMatch matchId={match.id} initialParticipants={initialParticipants} />
+
+      {/* Game notes — host-only by RLS (matches_update_open); freeze at finalize. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Game notes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action={updateMatchMeta} className="flex flex-col gap-3">
+            <input type="hidden" name="matchId" value={match.id} />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="notes">Notes</Label>
+              <textarea
+                id="notes"
+                name="notes"
+                rows={3}
+                maxLength={500}
+                defaultValue={match.notes ?? ""}
+                placeholder="The Gitrog combo went off on turn 6…"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="tags">Tags</Label>
+              <input
+                id="tags"
+                name="tags"
+                type="text"
+                defaultValue={(match.tags ?? []).join(", ")}
+                placeholder="combo, close-game (comma-separated, up to 5)"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <Button type="submit" variant="outline">
+              Save notes
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

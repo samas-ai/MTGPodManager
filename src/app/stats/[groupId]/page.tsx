@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
@@ -199,11 +200,23 @@ export default async function StatsPage({ params }: { params: { groupId: string 
           {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {recent.map((m) => (
-                <li key={m.id} className="flex items-center justify-between text-sm">
-                  <span>{m.winnerName ? `${m.winnerName} won` : "Finalized"}</span>
-                  <span className="text-muted-foreground">{formatDate(m.finalizedAt)}</span>
+                <li key={m.id} className="text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>{m.winnerName ? `${m.winnerName} won` : "Finalized"}</span>
+                    <span className="text-muted-foreground">{formatDate(m.finalizedAt)}</span>
+                  </div>
+                  {(m.tags.length > 0 || m.notes) && (
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      {m.tags.map((tag) => (
+                        <Badge key={tag}>{tag}</Badge>
+                      ))}
+                      {m.notes && (
+                        <span className="truncate text-xs text-muted-foreground">{m.notes}</span>
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

@@ -58,6 +58,35 @@ describe("finalizeMatchSchema", () => {
   });
 });
 
+describe("tagsFromInput", () => {
+  it("splits, trims, lowercases, and dedupes", async () => {
+    const { tagsFromInput } = await import("./matches");
+    expect(tagsFromInput("Combo,  close-game , COMBO,, ")).toEqual(["combo", "close-game"]);
+  });
+  it("returns empty for blank input", async () => {
+    const { tagsFromInput } = await import("./matches");
+    expect(tagsFromInput("  ")).toEqual([]);
+  });
+});
+
+describe("matchMetaSchema", () => {
+  it("accepts notes + tags within limits", async () => {
+    const { matchMetaSchema } = await import("./matches");
+    expect(
+      matchMetaSchema.safeParse({ matchId: UUID, notes: "great game", tags: ["combo"] }).success,
+    ).toBe(true);
+  });
+  it("rejects more than 5 tags and oversized notes", async () => {
+    const { matchMetaSchema } = await import("./matches");
+    expect(
+      matchMetaSchema.safeParse({ matchId: UUID, tags: ["a", "b", "c", "d", "e", "f"] }).success,
+    ).toBe(false);
+    expect(matchMetaSchema.safeParse({ matchId: UUID, notes: "x".repeat(501) }).success).toBe(
+      false,
+    );
+  });
+});
+
 describe("placementsFromForm", () => {
   function form(entries: Record<string, string>): FormData {
     const fd = new FormData();
