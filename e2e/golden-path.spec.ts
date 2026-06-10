@@ -90,7 +90,9 @@ test("golden path: pod → decks → match → verify → finalize → stats", a
   await expect(hostPage.getByText("1. Guest Player")).toBeVisible();
   await hostPage.getByRole("link", { name: "Full stats →" }).click();
   await expect(hostPage.getByRole("heading", { name: /Stats/ })).toBeVisible();
-  await expect(hostPage.getByText("Guest Deck")).toBeVisible();
+  // The deck shows in both Most-played and Deck-win-rates sections — .first()
+  // avoids the strict-mode ambiguity; either occurrence proves the stats read.
+  await expect(hostPage.getByText("Guest Deck · Krenko, Mob Boss").first()).toBeVisible();
 
   await host.close();
   await guest.close();
