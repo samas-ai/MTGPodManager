@@ -187,6 +187,29 @@ export type Database = {
         };
         Relationships: [];
       };
+      group_deck_winrates: {
+        Row: {
+          group_id: string | null;
+          deck_id: string | null;
+          deck_name_snapshot: string | null;
+          commander_snapshot: string | null;
+          games: number | null;
+          wins: number | null;
+          win_rate: number | null;
+        };
+        Relationships: [];
+      };
+      group_head_to_head: {
+        Row: {
+          group_id: string | null;
+          player_id: string | null;
+          opponent_id: string | null;
+          games_together: number | null;
+          player_wins: number | null;
+          opponent_wins: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       create_group: { Args: { p_name: string }; Returns: string };

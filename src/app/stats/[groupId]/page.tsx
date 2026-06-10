@@ -2,7 +2,13 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
-import { getDeckPlayCounts, getRecentMatches, getStandings } from "@/lib/stats";
+import {
+  getDeckPlayCounts,
+  getDeckWinrates,
+  getHeadToHead,
+  getRecentMatches,
+  getStandings,
+} from "@/lib/stats";
 
 export const metadata = { title: "Stats" };
 
@@ -30,9 +36,11 @@ export default async function StatsPage({ params }: { params: { groupId: string 
     .maybeSingle();
   if (!group) notFound();
 
-  const [standings, decks, recent] = await Promise.all([
+  const [standings, decks, deckWinrates, headToHead, recent] = await Promise.all([
     getStandings(supabase, group.id),
     getDeckPlayCounts(supabase, group.id),
+    getDeckWinrates(supabase, group.id),
+    getHeadToHead(supabase, group.id),
     getRecentMatches(supabase, group.id, 10),
   ]);
 
@@ -85,6 +93,66 @@ export default async function StatsPage({ params }: { params: { groupId: string 
                     ) : null}
                   </span>
                   <span className="tabular-nums text-muted-foreground">×{d.timesPlayed}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Deck win rates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {deckWinrates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+          ) : (
+            <ul className="space-y-1">
+              {deckWinrates.map((d, i) => (
+                <li key={`${d.name}-${i}`} className="flex items-center justify-between text-sm">
+                  <span className="truncate">
+                    {d.name}
+                    {d.commander ? (
+                      <span className="text-muted-foreground"> · {d.commander}</span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    {d.pct}% · {d.wins}/{d.games}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Head-to-head</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {headToHead.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Shared finalized matches will show up here.
+            </p>
+          ) : (
+            <ul className="space-y-1">
+              {headToHead.map((h) => (
+                <li
+                  key={`${h.playerId}-${h.opponentId}`}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="truncate">
+                    {h.playerName} vs {h.opponentName}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    {h.playerWins}–{h.opponentWins}
+                    <span aria-hidden="true"> · </span>
+                    <span aria-label={`${h.gamesTogether} games together`}>
+                      {h.gamesTogether} games
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>

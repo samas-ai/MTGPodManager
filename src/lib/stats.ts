@@ -33,6 +33,24 @@ export interface RecentMatch {
   finalizedAt: string | null;
 }
 
+export interface DeckWinrate {
+  name: string;
+  commander: string | null;
+  games: number;
+  wins: number;
+  pct: number;
+}
+
+export interface HeadToHeadRow {
+  playerId: string;
+  playerName: string;
+  opponentId: string;
+  opponentName: string;
+  gamesTogether: number;
+  playerWins: number;
+  opponentWins: number;
+}
+
 async function namesByIds(supabase: DB, ids: string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const { data } = await supabase.from("profiles").select("id, display_name").in("id", ids);
@@ -79,6 +97,65 @@ export async function getDeckPlayCounts(supabase: DB, groupId: string): Promise<
       timesPlayed: r.times_played ?? 0,
     }))
     .sort((a, b) => b.timesPlayed - a.timesPlayed);
+}
+
+export async function getDeckWinrates(supabase: DB, groupId: string): Promise<DeckWinrate[]> {
+  const { data } = await supabase
+    .from("group_deck_winrates")
+    .select("deck_name_snapshot, commander_snapshot, games, wins")
+    .eq("group_id", groupId);
+
+  return (data ?? [])
+    .filter((r) => r.deck_name_snapshot !== null && (r.games ?? 0) > 0)
+    .map((r) => ({
+      name: r.deck_name_snapshot as string,
+      commander: r.commander_snapshot,
+      games: r.games ?? 0,
+      wins: r.wins ?? 0,
+      pct: winPercent(r.wins ?? 0, r.games ?? 0),
+    }))
+    .sort((a, b) => b.pct - a.pct || b.games - a.games || a.name.localeCompare(b.name));
+}
+
+/**
+ * Head-to-head pairs for a group. The view emits both directions; we keep the
+ * canonical direction (playerId < opponentId) so each pair renders once.
+ */
+export async function getHeadToHead(supabase: DB, groupId: string): Promise<HeadToHeadRow[]> {
+  const { data } = await supabase
+    .from("group_head_to_head")
+    .select("player_id, opponent_id, games_together, player_wins, opponent_wins")
+    .eq("group_id", groupId);
+
+  const rows = (data ?? []).filter(
+    (r): r is {
+      player_id: string;
+      opponent_id: string;
+      games_together: number | null;
+      player_wins: number | null;
+      opponent_wins: number | null;
+    } => r.player_id !== null && r.opponent_id !== null && r.player_id < r.opponent_id,
+  );
+
+  const names = await namesByIds(supabase, [
+    ...rows.map((r) => r.player_id),
+    ...rows.map((r) => r.opponent_id),
+  ]);
+
+  return rows
+    .map((r) => ({
+      playerId: r.player_id,
+      playerName: names.get(r.player_id) ?? "Player",
+      opponentId: r.opponent_id,
+      opponentName: names.get(r.opponent_id) ?? "Player",
+      gamesTogether: r.games_together ?? 0,
+      playerWins: r.player_wins ?? 0,
+      opponentWins: r.opponent_wins ?? 0,
+    }))
+    .sort(
+      (a, b) =>
+        b.gamesTogether - a.gamesTogether || a.playerName.localeCompare(b.playerName),
+    );
 }
 
 export async function getRecentMatches(
