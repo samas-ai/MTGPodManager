@@ -10,13 +10,20 @@
 // every network destination. connect-src covers Supabase REST/Auth (https) and
 // Realtime (wss). If Scryfall card art ships later (roadmap D1), add
 // https://cards.scryfall.io to img-src.
+// CI E2E runs the prod build against the LOCAL Supabase stack; this env var
+// (unset everywhere else) lets the workflow allow it without touching the
+// real policy. Example: "http://127.0.0.1:54321 ws://127.0.0.1:54321".
+const extraConnectSrc = process.env.CSP_EXTRA_CONNECT_SRC?.trim();
+
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self' https://*.supabase.co wss://*.supabase.co${
+    extraConnectSrc ? ` ${extraConnectSrc}` : ""
+  }`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

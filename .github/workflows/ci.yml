@@ -1,5 +1,5 @@
-# CI — typecheck → lint → unit tests → pgTAP (RLS/finalize/stats) → build.
-# Activates once this project is pushed to a GitHub repo (it is not a git repo yet).
+# CI — typecheck → lint → unit tests → pgTAP (RLS/finalize/stats) → build →
+# Playwright E2E golden path (against the same local Supabase stack).
 # Mirrors the Tech Design "Development Workflow" gate; blocks merge on red.
 name: CI
 
@@ -40,11 +40,36 @@ jobs:
         run: |
           supabase start
           supabase test db
-          supabase stop
 
-      - name: Production build
+      # The stack stays up: the production build and the E2E run against it.
+      - name: Export local Supabase credentials
+        run: supabase status -o env | sed 's/"//g' | grep -E '^(API_URL|ANON_KEY)=' >> "$GITHUB_ENV"
+
+      - name: Production build (against the local stack)
         run: npm run build
         env:
-          # Dummy public values so `next build` can run without real secrets.
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.API_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          # Deterministic join-status transport for E2E (3s polling, no websocket).
+          NEXT_PUBLIC_REALTIME_TRANSPORT: polling
+          SCRYFALL_USER_AGENT: MTGPodManagerCI/1.0 (ci@example.com)
+          # Let the prod CSP reach the local stack (unset in real deployments).
+          CSP_EXTRA_CONNECT_SRC: http://127.0.0.1:54321 ws://127.0.0.1:54321
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E golden path (Playwright)
+        run: |
+          npm start &
+          for i in $(seq 1 30); do curl -fs http://localhost:3000 >/dev/null && break; sleep 1; done
+          E2E_RUN=1 npm run test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.API_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SCRYFALL_USER_AGENT: MTGPodManagerCI/1.0 (ci@example.com)
+          CSP_EXTRA_CONNECT_SRC: http://127.0.0.1:54321 ws://127.0.0.1:54321
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
