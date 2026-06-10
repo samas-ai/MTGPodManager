@@ -8,6 +8,12 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Majors are migrations, not bumps (Next 14 pin, Tailwind 3 token theme,
+    # ESLint 8 config). Take them deliberately, with a local gate — not via PR.
+    # (#6 was merged with a red check and broke npm ci on main — reverted.)
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       supabase:
         patterns:
