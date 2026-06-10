@@ -22,5 +22,9 @@ port = 54323
 
 [auth]
 enabled = true
+
+[auth.email]
 # Local testing convenience; production uses the dashboard's own auth settings.
+# (Key lives under [auth.email] since CLI v2 — bare [auth].enable_confirmations
+# fails `supabase start` config parsing.)
 enable_confirmations = false
