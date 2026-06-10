@@ -43,22 +43,22 @@ insert into public.decks (id, user_id, name, commander_name, source) values
 -- Match P: 3 verified participants, for the full-order path.
 -- Match Q: 2 verified participants, for the winner-only path.
 insert into public.matches (id, group_id, host_id)
-select 'eeeeeeee-0000-0000-0000-0000000000p1', id, '11111111-1111-1111-1111-111111111111' from public.groups where name = 'Pod';
+select 'eeeeeeee-0000-0000-0000-0000000000e1', id, '11111111-1111-1111-1111-111111111111' from public.groups where name = 'Pod';
 insert into public.matches (id, group_id, host_id)
-select 'eeeeeeee-0000-0000-0000-0000000000q1', id, '11111111-1111-1111-1111-111111111111' from public.groups where name = 'Pod';
+select 'eeeeeeee-0000-0000-0000-0000000000e2', id, '11111111-1111-1111-1111-111111111111' from public.groups where name = 'Pod';
 
 insert into public.match_participants (match_id, user_id, deck_id, verified) values
-  ('eeeeeeee-0000-0000-0000-0000000000p1', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', true),
-  ('eeeeeeee-0000-0000-0000-0000000000p1', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', true),
-  ('eeeeeeee-0000-0000-0000-0000000000p1', '33333333-3333-3333-3333-333333333333', 'dddddddd-0000-0000-0000-0000000000c1', true),
-  ('eeeeeeee-0000-0000-0000-0000000000q1', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', true),
-  ('eeeeeeee-0000-0000-0000-0000000000q1', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', true);
+  ('eeeeeeee-0000-0000-0000-0000000000e1', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', true),
+  ('eeeeeeee-0000-0000-0000-0000000000e1', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', true),
+  ('eeeeeeee-0000-0000-0000-0000000000e1', '33333333-3333-3333-3333-333333333333', 'dddddddd-0000-0000-0000-0000000000c1', true),
+  ('eeeeeeee-0000-0000-0000-0000000000e2', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', true),
+  ('eeeeeeee-0000-0000-0000-0000000000e2', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', true);
 
 -- --- RPC-only column: self-service writes of placement are blocked -----------
 select tests.act_as('22222222-2222-2222-2222-222222222222');
 select throws_ok(
   $$ update public.match_participants set placement = 1
-     where match_id = 'eeeeeeee-0000-0000-0000-0000000000p1'
+     where match_id = 'eeeeeeee-0000-0000-0000-0000000000e1'
        and user_id = '22222222-2222-2222-2222-222222222222' $$,
   '42501', null,
   'a player cannot set their own placement (WITH CHECK blocks it)'
@@ -68,7 +68,7 @@ select throws_ok(
 select tests.act_as('11111111-1111-1111-1111-111111111111');
 
 select throws_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '11111111-1111-1111-1111-111111111111',
        '{"11111111-1111-1111-1111-111111111111": 1,
          "22222222-2222-2222-2222-222222222222": 2}'::jsonb) $$,
@@ -77,7 +77,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '11111111-1111-1111-1111-111111111111',
        '{"11111111-1111-1111-1111-111111111111": 1,
          "22222222-2222-2222-2222-222222222222": 2,
@@ -87,7 +87,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '11111111-1111-1111-1111-111111111111',
        '{"11111111-1111-1111-1111-111111111111": 1,
          "22222222-2222-2222-2222-222222222222": 2,
@@ -97,7 +97,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '11111111-1111-1111-1111-111111111111',
        '{"11111111-1111-1111-1111-111111111111": 1,
          "22222222-2222-2222-2222-222222222222": 2,
@@ -107,7 +107,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '11111111-1111-1111-1111-111111111111',
        '{"11111111-1111-1111-1111-111111111111": 2,
          "22222222-2222-2222-2222-222222222222": 1,
@@ -118,7 +118,7 @@ select throws_ok(
 
 -- --- Valid full order persists ------------------------------------------------
 select lives_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000p1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e1',
        '22222222-2222-2222-2222-222222222222',
        '{"22222222-2222-2222-2222-222222222222": 1,
          "33333333-3333-3333-3333-333333333333": 2,
@@ -128,32 +128,32 @@ select lives_ok(
 
 select is(
   (select placement from public.match_participants
-    where match_id = 'eeeeeeee-0000-0000-0000-0000000000p1'
+    where match_id = 'eeeeeeee-0000-0000-0000-0000000000e1'
       and user_id = '22222222-2222-2222-2222-222222222222'),
   1::smallint, 'winner recorded as 1st'
 );
 select is(
   (select placement from public.match_participants
-    where match_id = 'eeeeeeee-0000-0000-0000-0000000000p1'
+    where match_id = 'eeeeeeee-0000-0000-0000-0000000000e1'
       and user_id = '33333333-3333-3333-3333-333333333333'),
   2::smallint, 'second place recorded'
 );
 select is(
   (select placement from public.match_participants
-    where match_id = 'eeeeeeee-0000-0000-0000-0000000000p1'
+    where match_id = 'eeeeeeee-0000-0000-0000-0000000000e1'
       and user_id = '11111111-1111-1111-1111-111111111111'),
   3::smallint, 'third place recorded'
 );
 
 -- --- Winner-only mode still works ----------------------------------------------
 select lives_ok(
-  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000q1',
+  $$ select public.finalize_match('eeeeeeee-0000-0000-0000-0000000000e2',
        '11111111-1111-1111-1111-111111111111') $$,
   'winner-only finalize (no placements argument) still works'
 );
 select results_eq(
   $$ select user_id, placement from public.match_participants
-      where match_id = 'eeeeeeee-0000-0000-0000-0000000000q1' order by user_id $$,
+      where match_id = 'eeeeeeee-0000-0000-0000-0000000000e2' order by user_id $$,
   $$ values ('11111111-1111-1111-1111-111111111111'::uuid, 1::smallint),
             ('22222222-2222-2222-2222-222222222222'::uuid, null::smallint) $$,
   'winner-only mode sets winner to 1, leaves others null'
