@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cinzel, Inter } from "next/font/google";
+import { VercelMetrics } from "@/components/features/vercel-metrics";
 import "@/styles/globals.css";
 
 // Display serif (Trajan-like, very MTG) for headings; clean sans for body.
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <div id="main">{children}</div>
+        <VercelMetrics />
       </body>
     </html>
   );
