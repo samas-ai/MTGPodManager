@@ -5,11 +5,11 @@ DO NOT delete historical context if it is still relevant. Compress older complet
 -->
 
 ## 🏗️ Active Phase & Goal
-**Current Task:** **Phase 7 Pass 1 (Design/UX restyle + Accessibility) is code-complete and locally verified** (typecheck/lint/55 tests/`next build` green). MVP F1–F6 done (F1–F5 verified live; F6/0005 + 0006 fix await user apply). Remaining Phase 7: security review, perf/Core Web Vitals on a real device, Vercel deploy.
-**Next Steps:**
-1. **(User)** Apply `supabase/migrations/0005_stats.sql` (both views appear under Database → Views). Verify: with a finalized match present, pod home shows the standings teaser + recent matches, and `/stats/[groupId]` shows full standings / most-played decks / recent matches; finalize another match → counts update.
-2. **(User)** Run the MVP Definition-of-Done checks: full verified-logging journey on real phones (host + 3 joiners), mobile performance, and run all pgTAP suites once Docker/CLI is available (`supabase test db`): `rls_groups`, `rls_decks`, `rls_matches`, `finalize_match`, `stats_views`.
-3. **Phase 7 — only user/env-bound items remain:** follow [`DEPLOY.md`](DEPLOY.md) — push to GitHub (activates CI), apply migrations 0001→0007, set Vercel env vars, deploy, smoke-test, run Lighthouse on a real phone, watch Supabase free-tier usage. All in-code passes (design/a11y, security, CI/headers/deploy-prep) are done.
+**Current Task:** 🚀 **SHIPPED (2026-06-10) — MVP (F1–F6) deployed to production on Vercel + Supabase and verified working live by the user on mobile + desktop.** Archidekt import, match join/verify/finalize, and stats all confirmed in prod. Migrations 0001–0008 applied to the production project. Phase 7 (design/a11y, security review, CI/headers/deploy-prep) complete.
+**Next Steps (optional / post-launch):** Post-launch plan now lives in `ROADMAP.md` (2026-06-10) — 4 tracks (quality / features / UX / MTG theming) sequenced as Phases 8–12; start with Phase 8 (stabilize & instrument).
+1. **P1 backlog** (post-MVP): per-deck win rates + head-to-head, group leaderboard / standings-over-time, match history notes/tags. (product_requirements.md "Should Have".)
+2. **Loose ends:** brief new-pod user walkthrough/README (PRD Definition-of-Done doc item); push to GitHub so CI runs the pgTAP suites (`.github/workflows/ci.yml` ready); optionally enable the documented CSP after a browser check.
+3. **Operational:** watch Supabase free-tier usage (Realtime connections, DB size); polling fallback + upgrade trigger documented in `DEPLOY.md`.
 4. Keep `@supabase/ssr` + `@supabase/supabase-js` aligned (see Known Issues) when adding deps.
 
 ## 📂 Architectural Decisions
@@ -35,6 +35,7 @@ DO NOT delete historical context if it is still relevant. Compress older complet
 
 ## 🐛 Known Issues & Quirks
 *(Log current bugs or weird workarounds here)*
+- 2026-06-10 — **FIXED (migration 0008):** in production, creating a pod / saving a deck failed with FK 23503 "Key (created_by/user_id)=… not present in table profiles" — the signed-in user had no `profiles` row. Cause: the account was created before the `on_auth_user_created` trigger existed in that project (or the trigger wasn't present). `0008_backfill_profiles.sql` backfills profiles for all existing `auth.users` and re-asserts the function+trigger. **User must apply 0008.** Diagnostic: profile auto-creation depends on that trigger — verify it exists in any new Supabase project (Database → Triggers → `on_auth_user_created` on `auth.users`).
 - 2026-06-10 — **FIXED (migration 0006):** deleting a deck that had been used in a match failed (FK violation 23503) because `match_participants.deck_id` was `ON DELETE NO ACTION`. Changed to **`ON DELETE SET NULL`** — the deck reference clears on delete while `deck_name_snapshot`/`commander_snapshot` preserve stats + history. **User must apply `0006_deck_delete_set_null.sql`** for the fix to take effect. `deleteDeck` now maps code 23503 to a clear message.
 - ⚠️ **Verify before relying on it:** Supabase Realtime's RLS authorization behavior for Postgres Changes has changed across releases. Confirm current behavior in the Supabase docs during F4 setup. Design assumes a member-only `SELECT` policy on `match_participants` is sufficient to scope change events.
 - ⚠️ **Re-check Archidekt ToS / endpoints before building F3.** No clearly documented, stable public API. If only an internal JSON path exists, treat as best-effort, low-frequency, server-side, cached — and lean on the manual fallback as the real guarantee.

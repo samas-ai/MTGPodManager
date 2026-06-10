@@ -42,7 +42,12 @@ steps to run it against a free hosted Supabase project.
    It adds a WITH CHECK to the `match_participants` UPDATE policy (membership of
    the new match's group) — closing an open-match injection vector found in the
    Phase 7 security review (see [`SECURITY-REVIEW.md`](SECURITY-REVIEW.md)).
-   Apply migrations in order (0001 → 0002 → 0003 → 0004 → 0005 → 0006 → 0007).
+10. **Profiles backfill + trigger:** run [`supabase/migrations/0008_backfill_profiles.sql`](supabase/migrations/0008_backfill_profiles.sql).
+    It backfills a `profiles` row for any existing auth user missing one and
+    re-asserts the `on_auth_user_created` trigger. **Required if you created any
+    account before applying 0001 in this project** (otherwise pod/deck creation
+    fails with FK 23503 "not present in table profiles").
+    Apply migrations in order (0001 → … → 0008).
 
 ## 3. Configure auth
 - **Auth → Providers → Email** is enabled by default (email+password).

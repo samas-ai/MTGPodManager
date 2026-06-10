@@ -28,3 +28,6 @@ next-env.d.ts
 /coverage
 /playwright-report
 /test-results
+
+# claude code local settings
+.claude/settings.local.json
