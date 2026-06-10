@@ -3,20 +3,16 @@
 Production target: **Vercel** (Next.js) + **Supabase** (DB/Auth/Realtime), both free tier.
 Prereqs: a hosted Supabase project (see [`SETUP.md`](SETUP.md)) and a GitHub repo.
 
-## 1. Push to GitHub (enables CI)
-The repo isn't under git yet. Once pushed, `.github/workflows/ci.yml` runs the full
-gate on every push/PR: typecheck → lint → Vitest → **Supabase local + pgTAP** → build.
-```bash
-git init && git add . && git commit -m "MVP F1–F6 + Phase 7 hardening"
-git branch -M main
-git remote add origin <your-repo-url>
-git push -u origin main
-```
+## 1. GitHub & CI ✅
+The repo lives at `github.com/samas-ai/MTGPodManager`. `.github/workflows/ci.yml`
+runs the full gate on every push/PR: typecheck → lint → Vitest → **Supabase local +
+pgTAP** → build. Dependabot keeps deps fresh (`@supabase/*` grouped so `ssr` +
+`supabase-js` always bump together).
 
 ## 2. Apply database migrations (in order)
-In the Supabase dashboard → SQL Editor, run each, **0001 → 0007**:
+In the Supabase dashboard → SQL Editor, run each, **0001 → 0008**:
 `0001_init_groups` · `0002_decks` · `0003_matches` · `0004_finalize` · `0005_stats`
-· `0006_deck_delete_set_null` · `0007_harden_mp_update`.
+· `0006_deck_delete_set_null` · `0007_harden_mp_update` · `0008_backfill_profiles`.
 Confirm: 7 tables + 2 views (Database → Views), RLS shield on every table, and the
 `finalize_match` / `create_group` / `accept_invite` / `create_invite` functions.
 
@@ -33,7 +29,11 @@ Confirm: 7 tables + 2 views (Database → Views), RLS shield on every table, and
    - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
    - `SCRYFALL_USER_AGENT` (e.g. `MTGPodManager/1.0 (you@example.com)`)
    - `NEXT_PUBLIC_SITE_URL` = your production URL (for metadata/robots/sitemap)
-3. Deploy. Preview deploys come per-PR automatically.
+3. **Enable Web Analytics and Speed Insights** (Project → Analytics / Speed Insights
+   → Enable). The app already mounts both first-party scripts (gated on `VERCEL=1`);
+   nothing is collected until enabled in the dashboard. Speed Insights is the field
+   data for the §6 performance check.
+4. Deploy. Preview deploys come per-PR automatically.
 
 ## 5. Post-deploy smoke test (the verified-logging journey)
 On the production URL, ideally on real phones (host + ≥1 joiner):
@@ -51,20 +51,37 @@ On the production URL, ideally on real phones (host + ≥1 joiner):
 - The app is already mobile-first, RSC-rendered, token-styled, and self-hosts fonts —
   expect good scores; investigate any regressions in the match/host route (largest JS).
 
-## 7. Monitoring & free-tier watch (Supabase dashboard)
-- Watch **Realtime concurrent connections** (one channel per active match) and **DB size**.
-- **Upgrade trigger:** move Supabase to a paid tier when Realtime connections approach
-  the free cap during normal play, or the project risks auto-pausing once real users
-  depend on it. The app has a **polling fallback** — set
-  `NEXT_PUBLIC_REALTIME_TRANSPORT=polling` to relieve Realtime pressure.
+## 7. Monthly free-tier usage check (~5 min, Supabase + Vercel dashboards)
+Run through this checklist monthly (or after any unusually busy week). Caps below
+are the free-tier figures as of mid-2026 — confirm current numbers on the pricing
+pages when a reading gets close.
+
+| Metric | Where | Free cap (≈) | Act when |
+|---|---|---|---|
+| DB size | Supabase → Reports → Database | 500 MB | > 350 MB (70%) |
+| Realtime concurrent connections | Supabase → Reports → Realtime | 200 | > 100 sustained |
+| Realtime messages / month | Supabase → Reports → Realtime | 2M | > 1.4M (70%) |
+| Monthly active users | Supabase → Reports → Auth | 50k | n/a at pod scale |
+| Project pausing | Supabase pauses free projects after ~1 week of inactivity | — | any pause once real pods depend on it |
+| Bandwidth | Vercel → Usage | 100 GB | > 70 GB |
+
+**Pressure valves, in order:**
+1. Realtime pressure → set `NEXT_PUBLIC_REALTIME_TRANSPORT=polling` in Vercel env
+   (3s polling, no schema/code change) and redeploy.
+2. DB size → old finalized matches are tiny; size pressure would come from
+   `decks.card_data` JSON — clear card lists for unused imported decks if ever needed.
+3. **Upgrade trigger (move Supabase to Pro):** Realtime connections approach the cap
+   during normal play, the project risks auto-pausing with real users, or DB size
+   passes 70% with valves 1–2 exhausted.
 
 ## 8. Security follow-ups (see [`SECURITY-REVIEW.md`](SECURITY-REVIEW.md))
 - Verify **Supabase Realtime authorization** enforces `mp_select` RLS per subscriber
   for Postgres Changes on `match_participants`.
 - Treat `SUPABASE_SERVICE_ROLE_KEY` as a secret (rotate if ever exposed).
-- **Optional CSP:** enable the documented Content-Security-Policy in
-  [`next.config.mjs`](next.config.mjs) after confirming in-browser that Realtime,
-  fonts, and styles still work.
+- **CSP ✅ enabled (production-only)** in [`next.config.mjs`](next.config.mjs) —
+  browser-verified locally (fonts, styles, Supabase https/wss allowed; foreign
+  origins blocked). Post-deploy: confirm zero CSP violations in the browser console
+  during the §5 smoke test (Realtime live updates working = wss allowed in prod).
 
 ## Done when
 - CI green on `main`; production build succeeds on Vercel.

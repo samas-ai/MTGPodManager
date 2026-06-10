@@ -129,6 +129,16 @@ Needs at least 2 pod members (use two browsers/profiles) and each with ≥1 deck
 - RLS proof: a non-member cannot see another pod's stats (the views are
   `security_invoker`, so your RLS on the base tables scopes every row).
 
+## Regenerating database types (one-time setup, then one command)
+`src/lib/supabase/database.types.ts` was hand-authored (no CLI/Docker at build time)
+and must be regenerated from the real schema whenever a migration lands:
+1. One-time: `npx supabase login` (opens browser; or set `SUPABASE_ACCESS_TOKEN`),
+   then `npx supabase link --project-ref <your-project-ref>` (the ref is in the
+   dashboard URL: `supabase.com/dashboard/project/<ref>`).
+2. After that, regenerate any time with: `npm run gen:types`
+3. Commit the result if it differs — a diff here means the hand-authored types had
+   drifted from the actual schema. `npm run typecheck` confirms nothing broke.
+
 ## Verification commands
 ```bash
 npm run typecheck   # tsc --noEmit — passes
