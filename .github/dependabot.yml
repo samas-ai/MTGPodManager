@@ -1,0 +1,27 @@
+# Dependabot — weekly, low-noise. The one hard rule: @supabase/ssr and
+# @supabase/supabase-js MUST bump together (version skew scrambles the client's
+# generic params and silently types query rows as `never` — see MEMORY.md).
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      supabase:
+        patterns:
+          - "@supabase/*"
+      next:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+      dev-tooling:
+        dependency-type: "development"
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
