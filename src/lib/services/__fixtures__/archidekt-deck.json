@@ -1,0 +1,26 @@
+{
+  "id": 123456,
+  "name": "Atraxa Superfriends",
+  "categories": [
+    { "name": "Commander", "isPremier": true, "includedInDeck": true },
+    { "name": "Planeswalkers", "isPremier": false, "includedInDeck": true },
+    { "name": "Maybeboard", "isPremier": false, "includedInDeck": false }
+  ],
+  "cards": [
+    {
+      "card": { "oracleCard": { "name": "Atraxa, Praetors' Voice" } },
+      "quantity": 1,
+      "categories": ["Commander"]
+    },
+    {
+      "card": { "oracleCard": { "name": "Doubling Season" } },
+      "quantity": 1,
+      "categories": ["Planeswalkers"]
+    },
+    {
+      "card": { "oracleCard": { "name": "Wastes" } },
+      "quantity": 5,
+      "categories": ["Lands"]
+    }
+  ]
+}

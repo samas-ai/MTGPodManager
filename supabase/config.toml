@@ -1,0 +1,26 @@
+# Minimal Supabase CLI config so `supabase start` / `supabase test db` work
+# locally and in CI. If a newer CLI needs more fields, run `supabase init` to
+# regenerate a full config (keep project_id + db.major_version = 15, which the
+# security_invoker stats views require).
+project_id = "mtg-pod-manager"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Local testing convenience; production uses the dashboard's own auth settings.
+enable_confirmations = false

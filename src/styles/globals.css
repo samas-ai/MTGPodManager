@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (CSS variables). PRD bans raw hex/pixel values in components, so
+ * every color/radius below is a token surfaced via tailwind.config.ts and used
+ * as utility classes. HSL channel values only — wrapped with hsl() in the theme.
+ *
+ * Theme: "arcane parchment" — warm neutrals, an arcane-purple primary, and a
+ * gold accent, with MTG mana tokens for color-identity pips. Light is the
+ * default; the .dark set is kept consistent for a future toggle / OS preference.
+ * Body text tokens are chosen to meet WCAG AA contrast (>= 4.5:1).
+ */
+@layer base {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 240 24% 13%;
+
+    --card: 40 40% 99%;
+    --card-foreground: 240 24% 13%;
+
+    --muted: 40 20% 91%;
+    --muted-foreground: 240 8% 38%;
+
+    --primary: 265 58% 44%;
+    --primary-foreground: 40 40% 98%;
+
+    --secondary: 40 26% 90%;
+    --secondary-foreground: 240 22% 20%;
+
+    --accent: 38 70% 42%;
+    --accent-foreground: 40 40% 98%;
+
+    --success: 142 45% 34%;
+    --success-foreground: 40 40% 98%;
+
+    --destructive: 0 68% 44%;
+    --destructive-foreground: 40 40% 98%;
+
+    --border: 40 16% 84%;
+    --input: 40 16% 80%;
+    --ring: 265 58% 50%;
+
+    --radius: 0.7rem;
+
+    /* MTG mana identity (pips pair color with a letter, never color alone). */
+    --mtg-w: 48 90% 88%;
+    --mtg-u: 205 78% 52%;
+    --mtg-b: 270 12% 26%;
+    --mtg-r: 6 74% 53%;
+    --mtg-g: 132 42% 42%;
+  }
+
+  .dark {
+    --background: 240 18% 10%;
+    --foreground: 40 30% 92%;
+
+    --card: 240 16% 13%;
+    --card-foreground: 40 30% 92%;
+
+    --muted: 240 12% 20%;
+    --muted-foreground: 240 12% 68%;
+
+    --primary: 265 70% 67%;
+    --primary-foreground: 240 18% 10%;
+
+    --secondary: 240 12% 22%;
+    --secondary-foreground: 40 30% 92%;
+
+    --accent: 38 78% 60%;
+    --accent-foreground: 240 18% 10%;
+
+    --success: 142 48% 52%;
+    --success-foreground: 240 18% 10%;
+
+    --destructive: 0 64% 58%;
+    --destructive-foreground: 240 18% 10%;
+
+    --border: 240 12% 24%;
+    --input: 240 12% 26%;
+    --ring: 265 70% 67%;
+
+    --mtg-w: 48 70% 82%;
+    --mtg-u: 205 72% 58%;
+    --mtg-b: 270 10% 40%;
+    --mtg-r: 6 70% 60%;
+    --mtg-g: 132 40% 52%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    /* Subtle arcane vignette — purely decorative, fixed so it never animates. */
+    background-image: radial-gradient(
+      125% 100% at 50% 0%,
+      hsl(var(--primary) / 0.06) 0%,
+      transparent 60%
+    );
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

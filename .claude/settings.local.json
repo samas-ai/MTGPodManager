@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(exit 1)",
+      "Bash(grep -rEn '\\\\$[0-9]+\\(/mo|/month\\)' README.md part*.md templates/)",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(supabase --version)",
+      "Bash(docker --version)",
+      "Bash(timeout 30 npm ping)",
+      "Bash(npm install *)",
+      "Bash(npm view *)",
+      "Bash(npm audit *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT:$?\")",
+      "WebFetch(domain:scryfall.com)",
+      "WebSearch",
+      "WebFetch(domain:archidekt.com)"
+    ]
+  }
+}
