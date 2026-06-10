@@ -17,6 +17,7 @@ insert into auth.users (id, email) values
   ('33333333-3333-3333-3333-333333333333', 'carol@example.com');
 
 create schema if not exists tests;
+grant usage on schema tests to authenticated;
 create or replace function tests.act_as(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
@@ -28,6 +29,7 @@ select public.create_group('Pod');
 select set_config('role', 'postgres', true);
 select set_config('request.jwt.claims', null, true);
 create temporary table _g as select id from public.groups where name = 'Pod' limit 1;
+grant select on _g to authenticated;
 insert into public.group_members (group_id, user_id, role)
 values ((select id from _g), '22222222-2222-2222-2222-222222222222', 'member');
 
@@ -41,6 +43,7 @@ select lives_ok(
 select set_config('role', 'postgres', true);
 select set_config('request.jwt.claims', null, true);
 create temporary table _m as select id from public.matches where group_id = (select id from _g) limit 1;
+grant select on _m to authenticated;
 
 -- --- A member who is not the host cannot create a match as someone else ------
 select tests.act_as('22222222-2222-2222-2222-222222222222');

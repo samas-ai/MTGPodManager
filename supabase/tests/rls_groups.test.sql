@@ -18,6 +18,7 @@ insert into auth.users (id, email) values
 
 -- --- Helper to act as a given user (sets the JWT claims RLS reads) -----------
 create schema if not exists tests;
+grant usage on schema tests to authenticated;
 create or replace function tests.act_as(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
@@ -34,6 +35,7 @@ select lives_ok(
 select set_config('role', 'postgres', true);
 select set_config('request.jwt.claims', null, true);
 create temporary table _g as select id from public.groups where name = 'Alice Pod' limit 1;
+grant select on _g to authenticated;
 
 -- --- Alice (member) can read her group & roster -----------------------------
 select tests.act_as('11111111-1111-1111-1111-111111111111');

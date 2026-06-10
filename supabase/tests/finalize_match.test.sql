@@ -17,6 +17,7 @@ insert into auth.users (id, email) values
   ('33333333-3333-3333-3333-333333333333', 'carol@example.com');
 
 create schema if not exists tests;
+grant usage on schema tests to authenticated;
 create or replace function tests.act_as(uid uuid) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
