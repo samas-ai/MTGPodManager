@@ -33,6 +33,85 @@ export interface RecentMatch {
   finalizedAt: string | null;
 }
 
+export interface MatchEvent {
+  winnerId: string | null;
+  participantIds: string[];
+}
+
+export interface PlayerTrend {
+  userId: string;
+  name: string;
+  games: number;
+  pct: number;
+  /** Cumulative win % after each of this player's games, in match order. */
+  series: number[];
+}
+
+/**
+ * Folds chronologically-ordered finalized matches into a cumulative win-rate
+ * series per player. Pure — unit-tested. A player gets one point per game
+ * they participated in.
+ */
+export function winRateSeries(events: MatchEvent[]): Map<string, number[]> {
+  const tally = new Map<string, { wins: number; games: number; series: number[] }>();
+  for (const event of events) {
+    for (const id of event.participantIds) {
+      const t = tally.get(id) ?? { wins: 0, games: 0, series: [] };
+      t.games += 1;
+      if (event.winnerId === id) t.wins += 1;
+      t.series.push(winPercent(t.wins, t.games));
+      tally.set(id, t);
+    }
+  }
+  return new Map([...tally.entries()].map(([id, t]) => [id, t.series]));
+}
+
+export async function getStandingsOverTime(supabase: DB, groupId: string): Promise<PlayerTrend[]> {
+  const { data: matches } = await supabase
+    .from("matches")
+    .select("id, winner_user_id")
+    .eq("group_id", groupId)
+    .eq("status", "finalized")
+    .order("finalized_at", { ascending: true });
+
+  const matchRows = matches ?? [];
+  if (matchRows.length === 0) return [];
+
+  const { data: parts } = await supabase
+    .from("match_participants")
+    .select("match_id, user_id")
+    .in(
+      "match_id",
+      matchRows.map((m) => m.id),
+    );
+
+  const byMatch = new Map<string, string[]>();
+  for (const p of parts ?? []) {
+    const list = byMatch.get(p.match_id) ?? [];
+    list.push(p.user_id);
+    byMatch.set(p.match_id, list);
+  }
+
+  const series = winRateSeries(
+    matchRows.map((m) => ({
+      winnerId: m.winner_user_id,
+      participantIds: byMatch.get(m.id) ?? [],
+    })),
+  );
+
+  const names = await namesByIds(supabase, [...series.keys()]);
+
+  return [...series.entries()]
+    .map(([userId, s]) => ({
+      userId,
+      name: names.get(userId) ?? "Player",
+      games: s.length,
+      pct: s[s.length - 1] ?? 0,
+      series: s,
+    }))
+    .sort((a, b) => b.pct - a.pct || b.games - a.games || a.name.localeCompare(b.name));
+}
+
 export interface DeckWinrate {
   name: string;
   commander: string | null;

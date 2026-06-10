@@ -2,12 +2,14 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
+import { Sparkline } from "@/components/features/sparkline";
 import {
   getDeckPlayCounts,
   getDeckWinrates,
   getHeadToHead,
   getRecentMatches,
   getStandings,
+  getStandingsOverTime,
 } from "@/lib/stats";
 
 export const metadata = { title: "Stats" };
@@ -36,11 +38,12 @@ export default async function StatsPage({ params }: { params: { groupId: string 
     .maybeSingle();
   if (!group) notFound();
 
-  const [standings, decks, deckWinrates, headToHead, recent] = await Promise.all([
+  const [standings, decks, deckWinrates, headToHead, trends, recent] = await Promise.all([
     getStandings(supabase, group.id),
     getDeckPlayCounts(supabase, group.id),
     getDeckWinrates(supabase, group.id),
     getHeadToHead(supabase, group.id),
+    getStandingsOverTime(supabase, group.id),
     getRecentMatches(supabase, group.id, 10),
   ]);
 
@@ -93,6 +96,34 @@ export default async function StatsPage({ params }: { params: { groupId: string 
                     ) : null}
                   </span>
                   <span className="tabular-nums text-muted-foreground">×{d.timesPlayed}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Standings over time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {trends.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {trends.map((t) => (
+                <li key={t.userId} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">{t.name}</span>
+                  <span className="flex items-center gap-2">
+                    <Sparkline
+                      values={t.series}
+                      label={`${t.name}'s win rate trend: ${t.pct}% after ${t.games} games`}
+                    />
+                    <span className="w-12 text-right tabular-nums text-muted-foreground">
+                      {t.pct}%
+                    </span>
+                  </span>
                 </li>
               ))}
             </ul>
