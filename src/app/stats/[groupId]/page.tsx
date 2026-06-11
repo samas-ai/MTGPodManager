@@ -18,7 +18,7 @@ import {
   getStandingsOverTime,
 } from "@/lib/stats";
 
-export const metadata = { title: "Stats" };
+export const metadata = { title: "Standings" };
 
 function formatDate(iso: string | null): string {
   if (!iso) return "";
@@ -56,7 +56,8 @@ export default async function StatsPage({ params }: { params: { groupId: string 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
       <PageHeader
-        title={`${group.name} · Stats`}
+        title={`${group.name} · Standings`}
+        subtitle="The running tale of your pod."
         back={{ href: `/groups/${group.id}`, label: "Back to pod" }}
       />
 
@@ -66,7 +67,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
         </CardHeader>
         <CardContent>
           {standings.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
           ) : (
             <ol className="space-y-1">
               {standings.map((s, i) => (
@@ -90,7 +91,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
         </CardHeader>
         <CardContent>
           {decks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No decks played yet.</p>
+            <p className="text-sm text-muted-foreground">No decks sleeved up yet.</p>
           ) : (
             <ul className="space-y-1">
               {decks.map((d, i) => (
@@ -131,7 +132,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
         </CardHeader>
         <CardContent>
           {trends.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
           ) : (
             <ul className="space-y-2">
               {trends.map((t) => (
@@ -159,7 +160,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
         </CardHeader>
         <CardContent>
           {deckWinrates.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
           ) : (
             <ul className="space-y-1">
               {deckWinrates.map((d, i) => (
@@ -229,11 +230,11 @@ export default async function StatsPage({ params }: { params: { groupId: string 
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent matches</CardTitle>
+          <CardTitle>Chronicle</CardTitle>
         </CardHeader>
         <CardContent>
           {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
           ) : (
             <ul className="space-y-2">
               {recent.map((m) => (

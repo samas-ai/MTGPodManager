@@ -107,7 +107,7 @@ export default async function DecksPage({
           ))
         ) : (
           <p className="text-sm text-muted-foreground">
-            No decks yet. Add one below — you&apos;ll pick it when logging a match.
+            No decks sleeved up yet. Add one below — you&apos;ll pick it when logging a match.
           </p>
         )}
       </section>

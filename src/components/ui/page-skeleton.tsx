@@ -10,7 +10,7 @@ export function PageSkeleton({ rows = 3 }: { rows?: number }) {
           <Skeleton key={i} className="h-20 w-full rounded-lg" />
         ))}
       </div>
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">Shuffling up…</span>
     </main>
   );
 }

@@ -195,7 +195,8 @@ export default async function GroupHomePage({
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                Host a session: run the table&apos;s life counter and let your pod join.
+                Untap, shuffle up, and let your pod join — you&apos;ll run the table&apos;s life
+                counter.
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <form action={startMatch}>
@@ -231,7 +232,7 @@ export default async function GroupHomePage({
         <CardContent>
           {topStandings.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No finalized matches yet. Standings appear after your first match.
+              No games chronicled yet. Standings appear after your first match.
             </p>
           ) : (
             <ol className="space-y-1">
@@ -252,11 +253,11 @@ export default async function GroupHomePage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent matches</CardTitle>
+          <CardTitle>Chronicle</CardTitle>
         </CardHeader>
         <CardContent>
           {recentMatches.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No finalized matches yet.</p>
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
           ) : (
             <ul className="space-y-1">
               {recentMatches.map((m) => (

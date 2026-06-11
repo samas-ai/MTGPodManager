@@ -8,11 +8,13 @@ import { cn } from "@/lib/utils";
  */
 export function PageHeader({
   title,
+  subtitle,
   back,
   actions,
   className,
 }: {
   title: string;
+  subtitle?: string;
   back?: { href: string; label: string };
   actions?: React.ReactNode;
   className?: string;
@@ -31,6 +33,7 @@ export function PageHeader({
         <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
         {actions ? <div className="flex items-center gap-1">{actions}</div> : null}
       </div>
+      {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
     </header>
   );
 }
