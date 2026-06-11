@@ -6,6 +6,7 @@ import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { QrCode } from "@/components/features/qr-code";
+import { StatBar } from "@/components/features/stat-bar";
 import { DeletePod } from "@/components/features/group/delete-pod";
 import { Input } from "@/components/ui/input";
 import {
@@ -237,21 +238,24 @@ export default async function GroupHomePage({
               No games chronicled yet. Standings appear after your first match.
             </p>
           ) : (
-            <ol className="space-y-1">
+            <ol className="space-y-2">
               {topStandings.slice(0, 3).map((s, i) => (
                 <li
                   key={s.userId}
                   className={cn(
-                    "flex items-center justify-between rounded-md text-sm",
+                    "flex flex-col gap-1 rounded-md text-sm",
                     i === 0 && "mtg-foil border-l-2 border-accent py-1 pl-2 font-medium",
                   )}
                 >
-                  <span>
-                    {i + 1}. {s.name}
-                  </span>
-                  <span className="tabular-nums text-muted-foreground">
-                    {s.pct}% · {s.wins}/{s.games}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span>
+                      {i + 1}. {s.name}
+                    </span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {s.pct}% · {s.wins}/{s.games}
+                    </span>
+                  </div>
+                  <StatBar value={s.pct} max={100} tone={i === 0 ? "accent" : "primary"} />
                 </li>
               ))}
             </ol>
