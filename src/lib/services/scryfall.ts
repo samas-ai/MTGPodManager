@@ -18,12 +18,30 @@ export interface ResolvedCommander {
   name: string;
   scryfallId: string;
   colorIdentity: string[];
+  artCrop: string | null;
+  artist: string | null;
+}
+
+interface ScryfallImageUris {
+  art_crop?: string;
 }
 
 interface ScryfallCard {
   id: string;
   name: string;
   color_identity: string[];
+  artist?: string;
+  image_uris?: ScryfallImageUris;
+  // Double-faced commanders carry imagery on the faces instead of the card.
+  card_faces?: { artist?: string; image_uris?: ScryfallImageUris }[];
+}
+
+function artOf(card: ScryfallCard): string | null {
+  return card.image_uris?.art_crop ?? card.card_faces?.[0]?.image_uris?.art_crop ?? null;
+}
+
+function artistOf(card: ScryfallCard): string | null {
+  return card.artist ?? card.card_faces?.[0]?.artist ?? null;
 }
 
 function userAgent(): string {
@@ -66,6 +84,8 @@ export async function resolveCommanders(names: string[]): Promise<Result<Resolve
       name: c.name,
       scryfallId: c.id,
       colorIdentity: c.color_identity ?? [],
+      artCrop: artOf(c),
+      artist: artistOf(c),
     }));
     return ok(resolved);
   } catch (e) {

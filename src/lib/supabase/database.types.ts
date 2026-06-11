@@ -65,6 +65,8 @@ export type Database = {
           commander_name: string;
           commander_scryfall_id: string | null;
           color_identity: string[];
+          art_crop_url: string | null;
+          artist: string | null;
           source: DeckSource;
           source_url: string | null;
           card_data: Json | null;
@@ -78,6 +80,8 @@ export type Database = {
           commander_name: string;
           commander_scryfall_id?: string | null;
           color_identity?: string[];
+          art_crop_url?: string | null;
+          artist?: string | null;
           source: DeckSource;
           source_url?: string | null;
           card_data?: Json | null;
@@ -91,6 +95,8 @@ export type Database = {
           commander_name?: string;
           commander_scryfall_id?: string | null;
           color_identity?: string[];
+          art_crop_url?: string | null;
+          artist?: string | null;
           source?: DeckSource;
           source_url?: string | null;
           card_data?: Json | null;
@@ -143,6 +149,8 @@ export type Database = {
           deck_id: string | null;
           deck_name_snapshot: string | null;
           commander_snapshot: string | null;
+          art_crop_snapshot: string | null;
+          artist_snapshot: string | null;
           verified: boolean;
           joined_at: string;
           placement: number | null;
@@ -154,6 +162,8 @@ export type Database = {
           deck_id?: string | null;
           deck_name_snapshot?: string | null;
           commander_snapshot?: string | null;
+          art_crop_snapshot?: string | null;
+          artist_snapshot?: string | null;
           verified?: boolean;
           joined_at?: string;
           placement?: number | null;
@@ -165,6 +175,8 @@ export type Database = {
           deck_id?: string | null;
           deck_name_snapshot?: string | null;
           commander_snapshot?: string | null;
+          art_crop_snapshot?: string | null;
+          artist_snapshot?: string | null;
           verified?: boolean;
           joined_at?: string;
           placement?: number | null;

@@ -8,8 +8,9 @@
 // 'unsafe-inline' for scripts/styles is required by Next 14's inline bootstrap
 // (no nonce support without middleware-rendered CSP); the policy still pins
 // every network destination. connect-src covers Supabase REST/Auth (https) and
-// Realtime (wss). If Scryfall card art ships later (roadmap D1), add
-// https://cards.scryfall.io to img-src.
+// Realtime (wss). img-src allows https://cards.scryfall.io for commander art
+// (D1) — next/image serves optimized art from 'self', but this covers any
+// direct/unoptimized rendering too.
 // CI E2E runs the prod build against the LOCAL Supabase stack; this env var
 // (unset everywhere else) lets the workflow allow it without touching the
 // real policy. Example: "http://127.0.0.1:54321 ws://127.0.0.1:54321".
@@ -19,7 +20,7 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  "img-src 'self' data: https://cards.scryfall.io",
   "font-src 'self'",
   `connect-src 'self' https://*.supabase.co wss://*.supabase.co${
     extraConnectSrc ? ` ${extraConnectSrc}` : ""
@@ -43,6 +44,11 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    // Commander art (Scryfall). next/image fetches + optimizes server-side and
+    // serves from our own origin, so the browser stays within CSP 'self'.
+    remotePatterns: [{ protocol: "https", hostname: "cards.scryfall.io" }],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

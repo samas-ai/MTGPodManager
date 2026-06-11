@@ -20,7 +20,13 @@ describe("importArchidektDeck", () => {
           status: 200,
           json: async () => ({
             data: [
-              { id: "sf-1", name: "Atraxa, Praetors' Voice", color_identity: ["W", "U", "B", "G"] },
+              {
+                id: "sf-1",
+                name: "Atraxa, Praetors' Voice",
+                color_identity: ["W", "U", "B", "G"],
+                artist: "Victor Adame Minguez",
+                image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg" },
+              },
             ],
             not_found: [],
           }),
@@ -36,6 +42,8 @@ describe("importArchidektDeck", () => {
       expect(r.data.color_identity).toEqual(["W", "U", "B", "G"]);
       expect(r.data.source).toBe("archidekt");
       expect(r.data.commander_scryfall_id).toBe("sf-1");
+      expect(r.data.art_crop_url).toBe("https://cards.scryfall.io/art_crop/sf-1.jpg");
+      expect(r.data.artist).toBe("Victor Adame Minguez");
     }
   });
 

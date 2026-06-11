@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { ColorPips } from "@/components/features/color-pips";
+import { CommanderArt } from "@/components/features/commander-art";
 import { PageHeader } from "@/components/ui/page-header";
 import { createDeck, deleteDeck, importDeck } from "@/lib/services/decks";
 import { createClient } from "@/lib/supabase/server";
@@ -26,7 +27,7 @@ export default async function DecksPage({
   // decks_all_own RLS scopes this to the signed-in user's decks.
   const { data: decks, error } = await supabase
     .from("decks")
-    .select("id, name, commander_name, color_identity, source")
+    .select("id, name, commander_name, color_identity, source, art_crop_url, artist")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -42,24 +43,27 @@ export default async function DecksPage({
           decks.map((d) => (
             <div
               key={d.id}
-              className="flex items-center justify-between rounded-md border border-border bg-card p-4"
+              className="flex flex-col gap-3 rounded-md border border-border bg-card p-4"
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="truncate font-medium">{d.name}</p>
-                  {d.source === "archidekt" ? <Badge>imported</Badge> : null}
+              <CommanderArt src={d.art_crop_url} artist={d.artist} alt={`${d.commander_name} art`} />
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-medium">{d.name}</p>
+                    {d.source === "archidekt" ? <Badge>imported</Badge> : null}
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <ColorPips identity={d.color_identity} />
+                    <p className="truncate text-sm text-muted-foreground">{d.commander_name}</p>
+                  </div>
                 </div>
-                <div className="mt-1 flex items-center gap-2">
-                  <ColorPips identity={d.color_identity} />
-                  <p className="truncate text-sm text-muted-foreground">{d.commander_name}</p>
-                </div>
+                <form action={deleteDeck}>
+                  <input type="hidden" name="deckId" value={d.id} />
+                  <Button type="submit" variant="ghost" size="sm">
+                    Remove
+                  </Button>
+                </form>
               </div>
-              <form action={deleteDeck}>
-                <input type="hidden" name="deckId" value={d.id} />
-                <Button type="submit" variant="ghost" size="sm">
-                  Remove
-                </Button>
-              </form>
             </div>
           ))
         ) : (

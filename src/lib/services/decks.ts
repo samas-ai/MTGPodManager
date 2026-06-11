@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createDeckSchema, deckIdSchema } from "@/lib/validators/decks";
 import { archidektUrlSchema } from "@/lib/validators/import";
 import { importArchidektDeck } from "@/lib/services/import";
+import { resolveCommanders } from "@/lib/services/scryfall";
 
 /**
  * Deck registration Server Actions (F2, manual entry only). Decks are strictly
@@ -32,12 +33,33 @@ export async function createDeck(formData: FormData): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  // source = 'manual'; Scryfall id + color identity stay empty until F3 import.
+  // Best-effort commander resolve (the PRD's "Scryfall-resolved commander" for
+  // manual entry): enriches the deck with color identity + commander art when
+  // Scryfall recognizes the name. Any failure (offline, typo, not found) is
+  // swallowed and the deck still saves — the manual path stays a guarantee.
+  let enrichment: {
+    commander_scryfall_id?: string;
+    color_identity?: string[];
+    art_crop_url?: string | null;
+    artist?: string | null;
+  } = {};
+  const resolved = await resolveCommanders([parsed.data.commanderName]);
+  if (resolved.ok && resolved.data[0]) {
+    const c = resolved.data[0];
+    enrichment = {
+      commander_scryfall_id: c.scryfallId,
+      color_identity: c.colorIdentity,
+      art_crop_url: c.artCrop,
+      artist: c.artist,
+    };
+  }
+
   const { error } = await supabase.from("decks").insert({
     user_id: user.id,
     name: parsed.data.name,
     commander_name: parsed.data.commanderName,
     source: "manual",
+    ...enrichment,
   });
 
   if (error) {
@@ -74,6 +96,8 @@ export async function importDeck(formData: FormData): Promise<void> {
     commander_name: result.data.commander_name,
     commander_scryfall_id: result.data.commander_scryfall_id,
     color_identity: result.data.color_identity,
+    art_crop_url: result.data.art_crop_url,
+    artist: result.data.artist,
     source: result.data.source,
     source_url: result.data.source_url,
     card_data: result.data.card_data,

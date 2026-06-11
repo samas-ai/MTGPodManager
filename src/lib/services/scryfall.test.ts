@@ -12,12 +12,20 @@ afterEach(() => {
 });
 
 describe("resolveCommanders", () => {
-  it("resolves color identity and sends required headers", async () => {
+  it("resolves color identity, art + artist, and sends required headers", async () => {
     const fn = mockFetchOnce(() => ({
       ok: true,
       status: 200,
       json: async () => ({
-        data: [{ id: "sf-1", name: "Atraxa, Praetors' Voice", color_identity: ["W", "U", "B", "G"] }],
+        data: [
+          {
+            id: "sf-1",
+            name: "Atraxa, Praetors' Voice",
+            color_identity: ["W", "U", "B", "G"],
+            artist: "Victor Adame Minguez",
+            image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg" },
+          },
+        ],
         not_found: [],
       }),
     }));
@@ -27,6 +35,8 @@ describe("resolveCommanders", () => {
     if (r.ok) {
       expect(r.data[0]?.scryfallId).toBe("sf-1");
       expect(r.data[0]?.colorIdentity).toEqual(["W", "U", "B", "G"]);
+      expect(r.data[0]?.artCrop).toBe("https://cards.scryfall.io/art_crop/sf-1.jpg");
+      expect(r.data[0]?.artist).toBe("Victor Adame Minguez");
     }
 
     // Etiquette: User-Agent + Accept headers present.
@@ -40,6 +50,32 @@ describe("resolveCommanders", () => {
     mockFetchOnce(() => ({ ok: true, status: 200, json: async () => ({ data: [], not_found: [{ name: "X" }] }) }));
     const r = await resolveCommanders(["Nonexistent Commander"]);
     expect(r.ok).toBe(false);
+  });
+
+  it("falls back to card_faces for art/artist on double-faced commanders", async () => {
+    mockFetchOnce(() => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [
+          {
+            id: "sf-2",
+            name: "Esika, God of the Tree // The Prismatic Bridge",
+            color_identity: ["G", "W", "U", "B", "R"],
+            card_faces: [
+              { artist: "Wisnu Tan", image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-2.jpg" } },
+            ],
+          },
+        ],
+        not_found: [],
+      }),
+    }));
+    const r = await resolveCommanders(["Esika, God of the Tree"]);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data[0]?.artCrop).toBe("https://cards.scryfall.io/art_crop/sf-2.jpg");
+      expect(r.data[0]?.artist).toBe("Wisnu Tan");
+    }
   });
 
   it("errors on a non-OK response", async () => {

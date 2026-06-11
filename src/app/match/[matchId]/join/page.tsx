@@ -4,6 +4,7 @@ import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { VerifyDeck, type DeckOption } from "@/components/features/match/verify-deck";
+import { CommanderArt } from "@/components/features/commander-art";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Join match" };
@@ -43,7 +44,7 @@ export default async function JoinMatchPage({
   // Has the caller already verified? (RLS lets members read participants.)
   const { data: mine } = await supabase
     .from("match_participants")
-    .select("verified, deck_name_snapshot")
+    .select("verified, deck_name_snapshot, commander_snapshot, art_crop_snapshot, artist_snapshot")
     .eq("match_id", match.id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -72,10 +73,17 @@ export default async function JoinMatchPage({
                 currentDeckName={mine?.verified ? (mine.deck_name_snapshot ?? null) : null}
               />
               {mine?.verified ? (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge variant="success">verified</Badge>
-                  Waiting for the host to record the result.
-                </p>
+                <div className="space-y-2">
+                  <CommanderArt
+                    src={mine.art_crop_snapshot}
+                    artist={mine.artist_snapshot}
+                    alt={`${mine.commander_snapshot ?? "Commander"} art`}
+                  />
+                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Badge variant="success">verified</Badge>
+                    Waiting for the host to record the result.
+                  </p>
+                </div>
               ) : null}
             </>
           )}
