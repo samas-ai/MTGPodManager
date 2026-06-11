@@ -94,6 +94,11 @@ test("golden path: pod → decks → match → verify → finalize → stats", a
   // avoids the strict-mode ambiguity; either occurrence proves the stats read.
   await expect(hostPage.getByText("Guest Deck · Krenko, Mob Boss").first()).toBeVisible();
 
+  // --- B6 "Run it back": one tap from the pod starts a fresh match -------------
+  await hostPage.goto(podUrl);
+  await hostPage.getByRole("button", { name: "Run it back" }).click();
+  await expect(hostPage.getByRole("heading", { name: "Live match" })).toBeVisible();
+
   await host.close();
   await guest.close();
 });

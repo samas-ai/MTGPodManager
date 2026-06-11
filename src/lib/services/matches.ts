@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { groupIdSchema } from "@/lib/validators/groups";
 import {
   finalizeMatchSchema,
+  matchIdSchema,
   matchMetaSchema,
   placementsFromForm,
   tagsFromInput,
@@ -66,6 +67,49 @@ export async function startMatch(formData: FormData): Promise<void> {
     redirect(`/groups/${groupId.data}?error=${enc("Couldn't start the match. Please try again.")}`);
   }
 
+  redirect(`/match/${data.id}/host`);
+}
+
+/**
+ * "Run it back" — start a fresh open match in the same pod as a prior one. The
+ * match invariant is untouched: participants re-join and re-verify (verification
+ * is per-match), so we only create the new open match and send the caller to the
+ * host screen. RLS scopes the lookup to the caller's pods and matches_insert_host
+ * requires them to be a member + the host of the new row.
+ */
+export async function rematch(formData: FormData): Promise<void> {
+  const fromId = matchIdSchema.safeParse(formData.get("fromMatchId"));
+  if (!fromId.success) {
+    redirect(`/groups?error=${enc("Invalid match.")}`);
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+
+  const { data: prev } = await supabase
+    .from("matches")
+    .select("group_id")
+    .eq("id", fromId.data)
+    .maybeSingle();
+  if (!prev) {
+    redirect(`/groups?error=${enc("That match isn't available.")}`);
+  }
+
+  const { data, error } = await supabase
+    .from("matches")
+    .insert({ group_id: prev.group_id, host_id: user.id, status: "open" })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    console.error("[matches] rematch failed", error);
+    redirect(`/groups/${prev.group_id}?error=${enc("Couldn't start the rematch. Please try again.")}`);
+  }
+
+  revalidatePath(`/groups/${prev.group_id}`);
   redirect(`/match/${data.id}/host`);
 }
 

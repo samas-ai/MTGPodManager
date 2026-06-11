@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { QrCode } from "@/components/features/qr-code";
 import { createInvite } from "@/lib/services/groups";
-import { startMatch } from "@/lib/services/matches";
+import { rematch, startMatch } from "@/lib/services/matches";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
 import { getRecentMatches, getStandings } from "@/lib/stats";
@@ -66,6 +66,7 @@ export default async function GroupHomePage({
     getStandings(supabase, group.id),
     getRecentMatches(supabase, group.id, 3),
   ]);
+  const lastFinalized = recentMatches[0] ?? null;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
@@ -146,10 +147,20 @@ export default async function GroupHomePage({
               <p className="text-sm text-muted-foreground">
                 Host a session: run the table&apos;s life counter and let your pod join.
               </p>
-              <form action={startMatch}>
-                <input type="hidden" name="groupId" value={group.id} />
-                <Button type="submit">Start match</Button>
-              </form>
+              <div className="flex flex-wrap items-center gap-2">
+                <form action={startMatch}>
+                  <input type="hidden" name="groupId" value={group.id} />
+                  <Button type="submit">Start match</Button>
+                </form>
+                {lastFinalized ? (
+                  <form action={rematch}>
+                    <input type="hidden" name="fromMatchId" value={lastFinalized.id} />
+                    <Button type="submit" variant="outline">
+                      Run it back
+                    </Button>
+                  </form>
+                ) : null}
+              </div>
             </>
           )}
         </CardContent>
