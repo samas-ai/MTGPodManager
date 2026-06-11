@@ -62,6 +62,10 @@ select lives_ok(
   $$ select public.leave_group((select id from _g)) $$,
   'a member can leave the pod'
 );
+-- Count as postgres: carol just left, so under RLS she can no longer see the
+-- roster (gm_select requires membership) — verify the row is actually gone.
+select set_config('role', 'postgres', true);
+select set_config('request.jwt.claims', null, true);
 select is(
   (select count(*)::int from public.group_members where group_id = (select id from _g)),
   2, 'roster shrinks after carol leaves'
