@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { QrCode } from "@/components/features/qr-code";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
-import { updateMatchMeta } from "@/lib/services/matches";
+import { cancelMatch, updateMatchMeta } from "@/lib/services/matches";
 
 export const metadata = { title: "Live match" };
 
@@ -155,6 +155,15 @@ export default async function HostMatchPage({
           </form>
         </CardContent>
       </Card>
+
+      {/* Close without recording — frees the pod to start a new match. */}
+      <form action={cancelMatch}>
+        <input type="hidden" name="matchId" value={match.id} />
+        <input type="hidden" name="redirectTo" value={`/groups/${match.group_id}`} />
+        <Button type="submit" variant="ghost" size="sm" className="self-start text-destructive">
+          Close match without recording
+        </Button>
+      </form>
     </main>
   );
 }

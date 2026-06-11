@@ -236,6 +236,7 @@ export type Database = {
         Args: { p_match_id: string; p_winner: string; p_placements?: Json };
         Returns: undefined;
       };
+      cancel_match: { Args: { p_match_id: string }; Returns: undefined };
     };
     Enums: { group_role: GroupRole; deck_source: DeckSource; match_status: MatchStatus };
     CompositeTypes: {

@@ -16,7 +16,7 @@ import {
   revokeInvites,
   setAdmin,
 } from "@/lib/services/groups";
-import { rematch, startMatch } from "@/lib/services/matches";
+import { cancelMatch, rematch, startMatch } from "@/lib/services/matches";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
 import { getRecentMatches, getStandings } from "@/lib/stats";
@@ -170,16 +170,27 @@ export default async function GroupHomePage({
           {openMatch ? (
             <>
               <p className="text-sm text-muted-foreground">A match is in progress.</p>
-              <Link
-                href={
-                  openMatch.host_id === user.id
-                    ? `/match/${openMatch.id}/host`
-                    : `/match/${openMatch.id}/join`
-                }
-                className={buttonVariants()}
-              >
-                {openMatch.host_id === user.id ? "Open host screen" : "Join match"}
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={
+                    openMatch.host_id === user.id
+                      ? `/match/${openMatch.id}/host`
+                      : `/match/${openMatch.id}/join`
+                  }
+                  className={buttonVariants()}
+                >
+                  {openMatch.host_id === user.id ? "Open host screen" : "Join match"}
+                </Link>
+                {isAdmin || openMatch.host_id === user.id ? (
+                  <form action={cancelMatch}>
+                    <input type="hidden" name="matchId" value={openMatch.id} />
+                    <input type="hidden" name="redirectTo" value={`/groups/${group.id}`} />
+                    <Button type="submit" variant="outline">
+                      Close match
+                    </Button>
+                  </form>
+                ) : null}
+              </div>
             </>
           ) : (
             <>

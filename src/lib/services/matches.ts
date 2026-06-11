@@ -113,6 +113,47 @@ export async function rematch(formData: FormData): Promise<void> {
   redirect(`/match/${data.id}/host`);
 }
 
+/**
+ * Force-close an open match. The host can close their own; a pod admin can
+ * force-close any open match in the pod (clears orphaned sessions blocking new
+ * ones). Authorization + the open-only / row-lock guards live in the
+ * cancel_match RPC; stats ignore cancelled matches.
+ */
+export async function cancelMatch(formData: FormData): Promise<void> {
+  const matchId = matchIdSchema.safeParse(formData.get("matchId"));
+  const back = safePath(formData.get("redirectTo"), "/groups");
+  if (!matchId.success) {
+    redirect(`${back}?error=${enc("Invalid match.")}`);
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+
+  const { data: match } = await supabase
+    .from("matches")
+    .select("group_id")
+    .eq("id", matchId.data)
+    .maybeSingle();
+
+  const { error } = await supabase.rpc("cancel_match", { p_match_id: matchId.data });
+  if (error) {
+    console.error("[matches] cancel_match failed", error.message);
+    const msg = error.message.includes("not_host_or_admin")
+      ? "Only the host or a pod admin can close this match."
+      : error.message.includes("match_not_open")
+        ? "This match is already closed."
+        : "Couldn't close the match. Please try again.";
+    redirect(`${back}?error=${enc(msg)}`);
+  }
+
+  const groupPath = match ? `/groups/${match.group_id}` : "/groups";
+  revalidatePath(groupPath);
+  redirect(`${groupPath}?message=${enc("Match closed.")}`);
+}
+
 export async function verifyParticipation(formData: FormData): Promise<void> {
   const redirectTo = safePath(formData.get("redirectTo"), "/groups");
   const parsed = verifyParticipationSchema.safeParse({
