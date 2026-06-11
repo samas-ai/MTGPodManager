@@ -195,6 +195,24 @@ export async function setAdmin(formData: FormData): Promise<void> {
   redirect(`${back}?message=${enc(makeAdmin ? "Promoted to admin." : "Admin removed.")}`);
 }
 
+export async function deleteGroup(formData: FormData): Promise<void> {
+  const groupId = groupIdSchema.safeParse(formData.get("groupId"));
+  if (!groupId.success) {
+    redirect(`/groups?error=${enc("Invalid group.")}`);
+  }
+
+  const supabase = createClient();
+  // Admin-only inside the RPC; cascades to members/invites/matches/results.
+  const { error } = await supabase.rpc("delete_group", { p_group_id: groupId.data });
+
+  if (error) {
+    console.error("[groups] delete_group failed", error.message);
+    redirect(`/groups/${groupId.data}?error=${enc(friendly(error.message))}`);
+  }
+  revalidatePath("/groups");
+  redirect(`/groups?message=${enc("Pod deleted.")}`);
+}
+
 export async function revokeInvites(formData: FormData): Promise<void> {
   const groupId = groupIdSchema.safeParse(formData.get("groupId"));
   if (!groupId.success) {

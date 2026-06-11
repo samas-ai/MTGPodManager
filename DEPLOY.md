@@ -10,11 +10,12 @@ pgTAP** → build. Dependabot keeps deps fresh (`@supabase/*` grouped so `ssr` +
 `supabase-js` always bump together).
 
 ## 2. Apply database migrations (in order)
-In the Supabase dashboard → SQL Editor, run each, **0001 → 0012**:
+In the Supabase dashboard → SQL Editor, run each, **0001 → 0013**:
 `0001_init_groups` · `0002_decks` · `0003_matches` · `0004_finalize` · `0005_stats`
 · `0006_deck_delete_set_null` · `0007_harden_mp_update` · `0008_backfill_profiles`
 · `0009_placement` (finishing order) · `0010_deck_stats` (deck win-rate + head-to-head
-views) · `0011_match_notes` (notes/tags) · `0012_group_management` (admin/self RPCs).
+views) · `0011_match_notes` (notes/tags) · `0012_group_management` (admin/self RPCs)
+· `0013_delete_group` (admin pod deletion).
 Confirm: 7 tables + 2 views (Database → Views), RLS shield on every table, and the
 `finalize_match` / `create_group` / `accept_invite` / `create_invite` functions.
 

@@ -6,6 +6,7 @@ import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { QrCode } from "@/components/features/qr-code";
+import { DeletePod } from "@/components/features/group/delete-pod";
 import { Input } from "@/components/ui/input";
 import {
   createInvite,
@@ -282,6 +283,18 @@ export default async function GroupHomePage({
                 Revoke invite codes
               </Button>
             </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Danger zone — admin-only, irreversible (delete_group re-checks admin). */}
+      {isAdmin ? (
+        <Card className="border-destructive/40">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger zone</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DeletePod groupId={group.id} groupName={group.name} />
           </CardContent>
         </Card>
       ) : null}

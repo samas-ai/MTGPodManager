@@ -231,6 +231,7 @@ export type Database = {
         Returns: undefined;
       };
       revoke_invites: { Args: { p_group_id: string }; Returns: undefined };
+      delete_group: { Args: { p_group_id: string }; Returns: undefined };
       finalize_match: {
         Args: { p_match_id: string; p_winner: string; p_placements?: Json };
         Returns: undefined;
