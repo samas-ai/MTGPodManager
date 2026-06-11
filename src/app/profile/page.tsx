@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { PageHeader } from "@/components/ui/page-header";
+import { ThemeToggle } from "@/components/features/theme-toggle";
 import { updateDisplayName } from "@/lib/services/profile";
 import { signOut } from "@/lib/services/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -64,6 +65,15 @@ export default async function ProfilePage({
             </div>
             <Button type="submit">Save</Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemeToggle />
         </CardContent>
       </Card>
 

@@ -30,8 +30,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
+        {/* Apply the saved (or OS) theme before paint to avoid a flash. Inline by
+            necessity; allowed by the CSP's script-src 'unsafe-inline'. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
+          }}
+        />
         {/* Skip link for keyboard / screen-reader users (WCAG 2.4.1). */}
         <a
           href="#main"
