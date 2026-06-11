@@ -31,12 +31,12 @@ export default async function GroupsPage({
   if (error) throw error;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-4xl">
       <PageHeader title="Your pods" />
 
       <AuthMessage error={searchParams.error} />
 
-      <section className="flex flex-col gap-2">
+      <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {groups && groups.length > 0 ? (
           groups.map((g) => (
             <Link
@@ -54,6 +54,7 @@ export default async function GroupsPage({
         )}
       </section>
 
+      <div className="grid gap-6 sm:grid-cols-2 sm:items-start">
       <Card>
         <CardHeader>
           <CardTitle>Create a pod</CardTitle>
@@ -85,6 +86,7 @@ export default async function GroupsPage({
           </form>
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }

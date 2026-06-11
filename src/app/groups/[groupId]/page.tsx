@@ -81,7 +81,7 @@ export default async function GroupHomePage({
   const lastFinalized = recentMatches[0] ?? null;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-5xl">
       <PageHeader
         title={group.name}
         back={{ href: "/groups", label: "All pods" }}
@@ -94,6 +94,7 @@ export default async function GroupHomePage({
 
       <AuthMessage error={searchParams.error} message={searchParams.message} />
 
+      <div className="grid gap-6 md:grid-cols-2 md:items-start">
       {searchParams.invite ? (
         <Card>
           <CardHeader>
@@ -317,6 +318,7 @@ export default async function GroupHomePage({
           </CardContent>
         </Card>
       ) : null}
+      </div>
 
       {/* Leave pod — available to everyone; the sole admin is blocked server-side. */}
       <form action={leaveGroup}>

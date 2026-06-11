@@ -55,13 +55,14 @@ export default async function StatsPage({ params }: { params: { groupId: string 
   ]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-5xl">
       <PageHeader
         title={`${group.name} · Standings`}
         subtitle="The running tale of your pod."
         back={{ href: `/groups/${group.id}`, label: "Back to pod" }}
       />
 
+      <div className="grid gap-6 md:grid-cols-2 md:items-start">
       <Card>
         <CardHeader>
           <CardTitle>Standings</CardTitle>
@@ -266,6 +267,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
           )}
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }

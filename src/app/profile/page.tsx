@@ -32,7 +32,7 @@ export default async function ProfilePage({
     .maybeSingle();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-3xl">
       <PageHeader
         title="Profile"
         actions={
@@ -46,6 +46,7 @@ export default async function ProfilePage({
 
       <AuthMessage error={searchParams.error} message={searchParams.message} />
 
+      <div className="grid gap-6 sm:grid-cols-2 sm:items-start">
       <Card>
         <CardHeader>
           <CardTitle>Display name</CardTitle>
@@ -76,6 +77,7 @@ export default async function ProfilePage({
           <ThemeToggle />
         </CardContent>
       </Card>
+      </div>
 
       <Link
         href="/profile/decks"

@@ -61,12 +61,12 @@ export default async function DecksPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-5xl">
       <PageHeader title="My decks" back={{ href: "/profile", label: "Profile" }} />
 
       <AuthMessage error={searchParams.error} />
 
-      <section className="flex flex-col gap-2">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {decks && decks.length > 0 ? (
           decks.map((d) => (
             <div
@@ -112,6 +112,7 @@ export default async function DecksPage({
         )}
       </section>
 
+      <div className="grid gap-6 sm:grid-cols-2 sm:items-start">
       <Card>
         <CardHeader>
           <CardTitle>Import from Archidekt</CardTitle>
@@ -160,6 +161,7 @@ export default async function DecksPage({
           </form>
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }
