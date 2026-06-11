@@ -7,7 +7,7 @@
 -- non-member sees zero rows (security_invoker + base RLS).
 -- =============================================================================
 begin;
-select plan(8);
+select plan(9);
 
 insert into auth.users (id, email) values
   ('11111111-1111-1111-1111-111111111111', 'alice@example.com'),
@@ -49,12 +49,12 @@ select 'ffffffff-0000-0000-0000-0000000000f2', id, '11111111-1111-1111-1111-1111
        'finalized', '11111111-1111-1111-1111-111111111111', now()
 from public.groups where name = 'Pod';
 
-insert into public.match_participants (match_id, user_id, deck_id, deck_name_snapshot, commander_snapshot, verified) values
-  ('ffffffff-0000-0000-0000-0000000000f1', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', 'A deck', 'Atraxa', true),
-  ('ffffffff-0000-0000-0000-0000000000f1', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', 'B deck', 'Edgar Markov', true),
-  ('ffffffff-0000-0000-0000-0000000000f2', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', 'A deck', 'Atraxa', true),
-  ('ffffffff-0000-0000-0000-0000000000f2', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', 'B deck', 'Edgar Markov', true),
-  ('ffffffff-0000-0000-0000-0000000000f2', '33333333-3333-3333-3333-333333333333', 'dddddddd-0000-0000-0000-0000000000c1', 'C deck', 'Krenko', true);
+insert into public.match_participants (match_id, user_id, deck_id, deck_name_snapshot, commander_snapshot, color_identity_snapshot, verified) values
+  ('ffffffff-0000-0000-0000-0000000000f1', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', 'A deck', 'Atraxa', '{W,U,B,G}', true),
+  ('ffffffff-0000-0000-0000-0000000000f1', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', 'B deck', 'Edgar Markov', '{W,B,R}', true),
+  ('ffffffff-0000-0000-0000-0000000000f2', '11111111-1111-1111-1111-111111111111', 'dddddddd-0000-0000-0000-0000000000a1', 'A deck', 'Atraxa', '{W,U,B,G}', true),
+  ('ffffffff-0000-0000-0000-0000000000f2', '22222222-2222-2222-2222-222222222222', 'dddddddd-0000-0000-0000-0000000000b1', 'B deck', 'Edgar Markov', '{W,B,R}', true),
+  ('ffffffff-0000-0000-0000-0000000000f2', '33333333-3333-3333-3333-333333333333', 'dddddddd-0000-0000-0000-0000000000c1', 'C deck', 'Krenko', '{R}', true);
 
 -- --- Member view: per-deck win rates -----------------------------------------
 select tests.act_as('22222222-2222-2222-2222-222222222222');
@@ -64,6 +64,14 @@ select results_eq(
       order by deck_name_snapshot $$,
   $$ values ('A deck', 2, 2), ('B deck', 2, 0), ('C deck', 1, 0) $$,
   'deck winrates: games and wins per deck are correct'
+);
+
+-- D2: color identity is snapshotted onto the view (mode() of the snapshots).
+select results_eq(
+  $$ select color_identity from public.group_deck_winrates
+      where deck_name_snapshot = 'A deck' $$,
+  $$ values ('{W,U,B,G}'::text[]) $$,
+  'deck winrates: color identity is surfaced from the snapshot'
 );
 
 -- --- Member view: head-to-head ------------------------------------------------

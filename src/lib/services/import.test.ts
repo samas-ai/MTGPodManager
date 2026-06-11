@@ -25,7 +25,10 @@ describe("importArchidektDeck", () => {
                 name: "Atraxa, Praetors' Voice",
                 color_identity: ["W", "U", "B", "G"],
                 artist: "Victor Adame Minguez",
-                image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg" },
+                image_uris: {
+                  art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg",
+                  normal: "https://cards.scryfall.io/normal/sf-1.jpg",
+                },
               },
             ],
             not_found: [],
@@ -43,6 +46,7 @@ describe("importArchidektDeck", () => {
       expect(r.data.source).toBe("archidekt");
       expect(r.data.commander_scryfall_id).toBe("sf-1");
       expect(r.data.art_crop_url).toBe("https://cards.scryfall.io/art_crop/sf-1.jpg");
+      expect(r.data.card_image_url).toBe("https://cards.scryfall.io/normal/sf-1.jpg");
       expect(r.data.artist).toBe("Victor Adame Minguez");
     }
   });

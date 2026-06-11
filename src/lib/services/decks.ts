@@ -41,6 +41,7 @@ export async function createDeck(formData: FormData): Promise<void> {
     commander_scryfall_id?: string;
     color_identity?: string[];
     art_crop_url?: string | null;
+    card_image_url?: string | null;
     artist?: string | null;
   } = {};
   const resolved = await resolveCommanders([parsed.data.commanderName]);
@@ -50,6 +51,7 @@ export async function createDeck(formData: FormData): Promise<void> {
       commander_scryfall_id: c.scryfallId,
       color_identity: c.colorIdentity,
       art_crop_url: c.artCrop,
+      card_image_url: c.cardImage,
       artist: c.artist,
     };
   }
@@ -97,6 +99,7 @@ export async function importDeck(formData: FormData): Promise<void> {
     commander_scryfall_id: result.data.commander_scryfall_id,
     color_identity: result.data.color_identity,
     art_crop_url: result.data.art_crop_url,
+    card_image_url: result.data.card_image_url,
     artist: result.data.artist,
     source: result.data.source,
     source_url: result.data.source_url,

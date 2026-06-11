@@ -5,6 +5,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { Sparkline } from "@/components/features/sparkline";
 import {
+  ColorPips,
+  ColorIdentityEdge,
+  colorIdentityLabel,
+} from "@/components/features/color-pips";
+import {
   getDeckPlayCounts,
   getDeckWinrates,
   getHeadToHead,
@@ -89,14 +94,30 @@ export default async function StatsPage({ params }: { params: { groupId: string 
           ) : (
             <ul className="space-y-1">
               {decks.map((d, i) => (
-                <li key={`${d.name}-${i}`} className="flex items-center justify-between text-sm">
-                  <span>
-                    {d.name}
-                    {d.commander ? (
-                      <span className="text-muted-foreground"> · {d.commander}</span>
+                <li
+                  key={`${d.name}-${i}`}
+                  className="relative flex items-center justify-between gap-2 overflow-hidden rounded-md py-1 pl-3 text-sm"
+                >
+                  <ColorIdentityEdge identity={d.colorIdentity} />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <ColorPips identity={d.colorIdentity} />
+                      <span className="truncate">
+                        {d.name}
+                        {d.commander ? (
+                          <span className="text-muted-foreground"> · {d.commander}</span>
+                        ) : null}
+                      </span>
+                    </span>
+                    {colorIdentityLabel(d.colorIdentity) ? (
+                      <span className="block text-xs text-muted-foreground">
+                        {colorIdentityLabel(d.colorIdentity)}
+                      </span>
                     ) : null}
                   </span>
-                  <span className="tabular-nums text-muted-foreground">×{d.timesPlayed}</span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    ×{d.timesPlayed}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -142,11 +163,25 @@ export default async function StatsPage({ params }: { params: { groupId: string 
           ) : (
             <ul className="space-y-1">
               {deckWinrates.map((d, i) => (
-                <li key={`${d.name}-${i}`} className="flex items-center justify-between text-sm">
-                  <span className="truncate">
-                    {d.name}
-                    {d.commander ? (
-                      <span className="text-muted-foreground"> · {d.commander}</span>
+                <li
+                  key={`${d.name}-${i}`}
+                  className="relative flex items-center justify-between gap-2 overflow-hidden rounded-md py-1 pl-3 text-sm"
+                >
+                  <ColorIdentityEdge identity={d.colorIdentity} />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <ColorPips identity={d.colorIdentity} />
+                      <span className="truncate">
+                        {d.name}
+                        {d.commander ? (
+                          <span className="text-muted-foreground"> · {d.commander}</span>
+                        ) : null}
+                      </span>
+                    </span>
+                    {colorIdentityLabel(d.colorIdentity) ? (
+                      <span className="block text-xs text-muted-foreground">
+                        {colorIdentityLabel(d.colorIdentity)}
+                      </span>
                     ) : null}
                   </span>
                   <span className="shrink-0 tabular-nums text-muted-foreground">

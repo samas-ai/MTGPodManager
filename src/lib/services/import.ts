@@ -15,6 +15,7 @@ export interface ImportedDeck {
   commander_scryfall_id: string | null;
   color_identity: string[];
   art_crop_url: string | null;
+  card_image_url: string | null;
   artist: string | null;
   source: "archidekt";
   source_url: string;
@@ -61,6 +62,7 @@ export async function importArchidektDeck(
     color_identity: colorIdentity,
     // Lead commander's art represents the deck (partners → first one).
     art_crop_url: resolved.data[0]?.artCrop ?? null,
+    card_image_url: resolved.data[0]?.cardImage ?? null,
     artist: resolved.data[0]?.artist ?? null,
     source: "archidekt",
     source_url: sourceUrl,

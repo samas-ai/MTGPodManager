@@ -23,7 +23,10 @@ describe("resolveCommanders", () => {
             name: "Atraxa, Praetors' Voice",
             color_identity: ["W", "U", "B", "G"],
             artist: "Victor Adame Minguez",
-            image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg" },
+            image_uris: {
+              art_crop: "https://cards.scryfall.io/art_crop/sf-1.jpg",
+              normal: "https://cards.scryfall.io/normal/sf-1.jpg",
+            },
           },
         ],
         not_found: [],
@@ -36,6 +39,7 @@ describe("resolveCommanders", () => {
       expect(r.data[0]?.scryfallId).toBe("sf-1");
       expect(r.data[0]?.colorIdentity).toEqual(["W", "U", "B", "G"]);
       expect(r.data[0]?.artCrop).toBe("https://cards.scryfall.io/art_crop/sf-1.jpg");
+      expect(r.data[0]?.cardImage).toBe("https://cards.scryfall.io/normal/sf-1.jpg");
       expect(r.data[0]?.artist).toBe("Victor Adame Minguez");
     }
 
@@ -63,7 +67,13 @@ describe("resolveCommanders", () => {
             name: "Esika, God of the Tree // The Prismatic Bridge",
             color_identity: ["G", "W", "U", "B", "R"],
             card_faces: [
-              { artist: "Wisnu Tan", image_uris: { art_crop: "https://cards.scryfall.io/art_crop/sf-2.jpg" } },
+              {
+                artist: "Wisnu Tan",
+                image_uris: {
+                  art_crop: "https://cards.scryfall.io/art_crop/sf-2.jpg",
+                  normal: "https://cards.scryfall.io/normal/sf-2.jpg",
+                },
+              },
             ],
           },
         ],
@@ -74,6 +84,7 @@ describe("resolveCommanders", () => {
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.data[0]?.artCrop).toBe("https://cards.scryfall.io/art_crop/sf-2.jpg");
+      expect(r.data[0]?.cardImage).toBe("https://cards.scryfall.io/normal/sf-2.jpg");
       expect(r.data[0]?.artist).toBe("Wisnu Tan");
     }
   });

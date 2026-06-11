@@ -66,6 +66,7 @@ export type Database = {
           commander_scryfall_id: string | null;
           color_identity: string[];
           art_crop_url: string | null;
+          card_image_url: string | null;
           artist: string | null;
           source: DeckSource;
           source_url: string | null;
@@ -81,6 +82,7 @@ export type Database = {
           commander_scryfall_id?: string | null;
           color_identity?: string[];
           art_crop_url?: string | null;
+          card_image_url?: string | null;
           artist?: string | null;
           source: DeckSource;
           source_url?: string | null;
@@ -96,6 +98,7 @@ export type Database = {
           commander_scryfall_id?: string | null;
           color_identity?: string[];
           art_crop_url?: string | null;
+          card_image_url?: string | null;
           artist?: string | null;
           source?: DeckSource;
           source_url?: string | null;
@@ -150,7 +153,9 @@ export type Database = {
           deck_name_snapshot: string | null;
           commander_snapshot: string | null;
           art_crop_snapshot: string | null;
+          card_image_snapshot: string | null;
           artist_snapshot: string | null;
+          color_identity_snapshot: string[] | null;
           verified: boolean;
           joined_at: string;
           placement: number | null;
@@ -163,7 +168,9 @@ export type Database = {
           deck_name_snapshot?: string | null;
           commander_snapshot?: string | null;
           art_crop_snapshot?: string | null;
+          card_image_snapshot?: string | null;
           artist_snapshot?: string | null;
+          color_identity_snapshot?: string[] | null;
           verified?: boolean;
           joined_at?: string;
           placement?: number | null;
@@ -176,7 +183,9 @@ export type Database = {
           deck_name_snapshot?: string | null;
           commander_snapshot?: string | null;
           art_crop_snapshot?: string | null;
+          card_image_snapshot?: string | null;
           artist_snapshot?: string | null;
+          color_identity_snapshot?: string[] | null;
           verified?: boolean;
           joined_at?: string;
           placement?: number | null;
@@ -202,6 +211,7 @@ export type Database = {
           deck_name_snapshot: string | null;
           commander_snapshot: string | null;
           times_played: number | null;
+          color_identity: string[] | null;
         };
         Relationships: [];
       };
@@ -214,6 +224,7 @@ export type Database = {
           games: number | null;
           wins: number | null;
           win_rate: number | null;
+          color_identity: string[] | null;
         };
         Relationships: [];
       };

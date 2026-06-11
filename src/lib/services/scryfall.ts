@@ -19,11 +19,14 @@ export interface ResolvedCommander {
   scryfallId: string;
   colorIdentity: string[];
   artCrop: string | null;
+  cardImage: string | null;
   artist: string | null;
 }
 
 interface ScryfallImageUris {
   art_crop?: string;
+  // Full card image (frame + art + text box), ~488×680. Used for the card preview.
+  normal?: string;
 }
 
 interface ScryfallCard {
@@ -38,6 +41,10 @@ interface ScryfallCard {
 
 function artOf(card: ScryfallCard): string | null {
   return card.image_uris?.art_crop ?? card.card_faces?.[0]?.image_uris?.art_crop ?? null;
+}
+
+function cardImageOf(card: ScryfallCard): string | null {
+  return card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? null;
 }
 
 function artistOf(card: ScryfallCard): string | null {
@@ -85,6 +92,7 @@ export async function resolveCommanders(names: string[]): Promise<Result<Resolve
       scryfallId: c.id,
       colorIdentity: c.color_identity ?? [],
       artCrop: artOf(c),
+      cardImage: cardImageOf(c),
       artist: artistOf(c),
     }));
     return ok(resolved);

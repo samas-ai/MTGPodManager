@@ -24,6 +24,7 @@ export interface Standing {
 export interface DeckPlayCount {
   name: string;
   commander: string | null;
+  colorIdentity: string[];
   timesPlayed: number;
 }
 
@@ -117,6 +118,7 @@ export async function getStandingsOverTime(supabase: DB, groupId: string): Promi
 export interface DeckWinrate {
   name: string;
   commander: string | null;
+  colorIdentity: string[];
   games: number;
   wins: number;
   pct: number;
@@ -167,7 +169,7 @@ export async function getStandings(supabase: DB, groupId: string): Promise<Stand
 export async function getDeckPlayCounts(supabase: DB, groupId: string): Promise<DeckPlayCount[]> {
   const { data } = await supabase
     .from("group_deck_play_counts")
-    .select("deck_name_snapshot, commander_snapshot, times_played")
+    .select("deck_name_snapshot, commander_snapshot, color_identity, times_played")
     .eq("group_id", groupId);
 
   return (data ?? [])
@@ -175,6 +177,7 @@ export async function getDeckPlayCounts(supabase: DB, groupId: string): Promise<
     .map((r) => ({
       name: r.deck_name_snapshot as string,
       commander: r.commander_snapshot,
+      colorIdentity: r.color_identity ?? [],
       timesPlayed: r.times_played ?? 0,
     }))
     .sort((a, b) => b.timesPlayed - a.timesPlayed);
@@ -183,7 +186,7 @@ export async function getDeckPlayCounts(supabase: DB, groupId: string): Promise<
 export async function getDeckWinrates(supabase: DB, groupId: string): Promise<DeckWinrate[]> {
   const { data } = await supabase
     .from("group_deck_winrates")
-    .select("deck_name_snapshot, commander_snapshot, games, wins")
+    .select("deck_name_snapshot, commander_snapshot, color_identity, games, wins")
     .eq("group_id", groupId);
 
   return (data ?? [])
@@ -191,6 +194,7 @@ export async function getDeckWinrates(supabase: DB, groupId: string): Promise<De
     .map((r) => ({
       name: r.deck_name_snapshot as string,
       commander: r.commander_snapshot,
+      colorIdentity: r.color_identity ?? [],
       games: r.games ?? 0,
       wins: r.wins ?? 0,
       pct: winPercent(r.wins ?? 0, r.games ?? 0),

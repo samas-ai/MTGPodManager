@@ -173,7 +173,7 @@ export async function verifyParticipation(formData: FormData): Promise<void> {
   // Load the deck under owner-only RLS — proves the deck belongs to the caller.
   const { data: deck } = await supabase
     .from("decks")
-    .select("id, name, commander_name, art_crop_url, artist")
+    .select("id, name, commander_name, color_identity, art_crop_url, card_image_url, artist")
     .eq("id", parsed.data.deckId)
     .maybeSingle();
 
@@ -181,8 +181,9 @@ export async function verifyParticipation(formData: FormData): Promise<void> {
     redirect(`${redirectTo}?error=${enc("That deck isn't available.")}`);
   }
 
-  // Snapshot deck identity + art so history stays correct if the deck is later
-  // changed or deleted.
+  // Snapshot deck identity + art + color identity so history (and the deck-stats
+  // views, which can't read owner-private decks) stay correct if the deck is
+  // later changed or deleted.
   const { error } = await supabase.from("match_participants").upsert(
     {
       match_id: parsed.data.matchId,
@@ -191,7 +192,9 @@ export async function verifyParticipation(formData: FormData): Promise<void> {
       deck_name_snapshot: deck.name,
       commander_snapshot: deck.commander_name,
       art_crop_snapshot: deck.art_crop_url,
+      card_image_snapshot: deck.card_image_url,
       artist_snapshot: deck.artist,
+      color_identity_snapshot: deck.color_identity,
       verified: true,
     },
     { onConflict: "match_id,user_id" },
