@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  * not a tab (it is group-scoped, reached from inside a pod).
  */
 
-const HIDDEN_PREFIXES = ["/sign-in", "/sign-up", "/match"];
+const HIDDEN_PREFIXES = ["/sign-in", "/sign-up", "/match", "/join"];
 
 interface Tab {
   href: string;

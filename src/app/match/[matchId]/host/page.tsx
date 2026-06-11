@@ -6,7 +6,9 @@ import { HostMatch, type Participant } from "@/components/features/match/host-ma
 import { VerifyDeck, type DeckOption } from "@/components/features/match/verify-deck";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { QrCode } from "@/components/features/qr-code";
 import { createClient } from "@/lib/supabase/server";
+import { getOrigin } from "@/lib/origin";
 import { updateMatchMeta } from "@/lib/services/matches";
 
 export const metadata = { title: "Live match" };
@@ -75,6 +77,8 @@ export default async function HostMatchPage({
     deckName: r.deck_name_snapshot,
   }));
 
+  const joinUrl = `${getOrigin()}/match/${match.id}/join`;
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
@@ -97,6 +101,18 @@ export default async function HostMatchPage({
             decks={(decks ?? []) as DeckOption[]}
             currentDeckName={mine?.verified ? (mine.deck_name_snapshot ?? null) : null}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Invite to the table</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-3">
+          <QrCode value={joinUrl} label="Scan to join this match" size={180} />
+          <p className="text-center text-sm text-muted-foreground">
+            Pod members scan to join this match and verify their deck.
+          </p>
         </CardContent>
       </Card>
 

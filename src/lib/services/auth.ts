@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validators/auth";
+import { safePath } from "@/lib/safe-path";
 
 /**
  * Auth Server Actions (email + password). Each validates with Zod at the
@@ -23,9 +24,12 @@ export async function signUp(formData: FormData): Promise<void> {
     displayName: formData.get("displayName"),
   });
 
+  // Where to land after auth — only safe, same-origin relative paths.
+  const next = safePath(formData.get("next"), "/groups");
+
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Invalid input.";
-    redirect(`/sign-up?error=${encodeError(msg)}`);
+    redirect(`/sign-up?error=${encodeError(msg)}&next=${encodeError(next)}`);
   }
 
   const supabase = createClient();
@@ -36,16 +40,19 @@ export async function signUp(formData: FormData): Promise<void> {
   });
 
   if (error) {
-    redirect(`/sign-up?error=${encodeError(error.message)}`);
+    redirect(`/sign-up?error=${encodeError(error.message)}&next=${encodeError(next)}`);
   }
 
-  // With email confirmation enabled, no session is returned yet.
+  // With email confirmation enabled, no session is returned yet — carry `next`
+  // to sign-in so the post-confirmation sign-in still lands in the right place.
   if (!data.session) {
-    redirect(`/sign-in?message=${encodeError("Check your email to confirm your account.")}`);
+    redirect(
+      `/sign-in?message=${encodeError("Check your email to confirm your account.")}&next=${encodeError(next)}`,
+    );
   }
 
   revalidatePath("/", "layout");
-  redirect("/groups");
+  redirect(next);
 }
 
 export async function signIn(formData: FormData): Promise<void> {
@@ -54,9 +61,11 @@ export async function signIn(formData: FormData): Promise<void> {
     password: formData.get("password"),
   });
 
+  const next = safePath(formData.get("next"), "/groups");
+
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Invalid input.";
-    redirect(`/sign-in?error=${encodeError(msg)}`);
+    redirect(`/sign-in?error=${encodeError(msg)}&next=${encodeError(next)}`);
   }
 
   const supabase = createClient();
@@ -66,11 +75,11 @@ export async function signIn(formData: FormData): Promise<void> {
   });
 
   if (error) {
-    redirect(`/sign-in?error=${encodeError("Invalid email or password.")}`);
+    redirect(`/sign-in?error=${encodeError("Invalid email or password.")}&next=${encodeError(next)}`);
   }
 
   revalidatePath("/", "layout");
-  redirect("/groups");
+  redirect(next);
 }
 
 export async function signOut(): Promise<void> {

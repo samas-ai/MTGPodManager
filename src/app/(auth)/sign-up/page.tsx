@@ -13,13 +13,16 @@ export const metadata = { title: "Create account" };
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: { error?: string; next?: string };
 }) {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) redirect("/groups");
+
+  const next = searchParams.next ?? "";
+  const signInHref = next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in";
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center p-6">
@@ -29,6 +32,7 @@ export default async function SignUpPage({
         </CardHeader>
         <CardContent>
           <form action={signUp} className="flex flex-col gap-4">
+            {next ? <input type="hidden" name="next" value={next} /> : null}
             <div className="flex flex-col gap-2">
               <Label htmlFor="displayName">Display name</Label>
               <Input id="displayName" name="displayName" required maxLength={40} autoComplete="nickname" />
@@ -55,7 +59,7 @@ export default async function SignUpPage({
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/sign-in" className="font-medium text-foreground underline">
+            <Link href={signInHref} className="font-medium text-foreground underline">
               Sign in
             </Link>
           </p>

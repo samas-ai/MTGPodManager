@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
+import { QrCode } from "@/components/features/qr-code";
 import { createInvite } from "@/lib/services/groups";
 import { startMatch } from "@/lib/services/matches";
 import { createClient } from "@/lib/supabase/server";
+import { getOrigin } from "@/lib/origin";
 import { getRecentMatches, getStandings } from "@/lib/stats";
 
 export const metadata = { title: "Pod" };
@@ -84,10 +86,15 @@ export default async function GroupHomePage({
           <CardHeader>
             <CardTitle>Invite code</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
+          <CardContent className="flex flex-col items-center gap-3">
             <p className="font-mono text-2xl tracking-widest">{searchParams.invite}</p>
-            <p className="text-sm text-muted-foreground">
-              Share this code. It expires in 14 days.
+            <QrCode
+              value={`${getOrigin()}/join/${searchParams.invite}`}
+              label="Scan to join this pod"
+              size={180}
+            />
+            <p className="text-center text-sm text-muted-foreground">
+              Scan to join, or share the code. Expires in 14 days.
             </p>
           </CardContent>
         </Card>

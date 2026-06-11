@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/client";
  * Hidden on match screens (you're already there) and off the app shell.
  */
 
-const HIDDEN_PREFIXES = ["/sign-in", "/sign-up", "/match"];
+const HIDDEN_PREFIXES = ["/sign-in", "/sign-up", "/match", "/join"];
 
 export function ActiveMatchPill() {
   const pathname = usePathname();
