@@ -17,6 +17,7 @@ import {
   setAdmin,
 } from "@/lib/services/groups";
 import { cancelMatch, rematch, startMatch } from "@/lib/services/matches";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
 import { getRecentMatches, getStandings } from "@/lib/stats";
@@ -237,7 +238,13 @@ export default async function GroupHomePage({
           ) : (
             <ol className="space-y-1">
               {topStandings.slice(0, 3).map((s, i) => (
-                <li key={s.userId} className="flex items-center justify-between text-sm">
+                <li
+                  key={s.userId}
+                  className={cn(
+                    "flex items-center justify-between rounded-md text-sm",
+                    i === 0 && "mtg-foil border-l-2 border-accent py-1 pl-2 font-medium",
+                  )}
+                >
                   <span>
                     {i + 1}. {s.name}
                   </span>

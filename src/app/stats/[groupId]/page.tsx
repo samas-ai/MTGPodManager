@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { Sparkline } from "@/components/features/sparkline";
 import {
@@ -71,7 +72,13 @@ export default async function StatsPage({ params }: { params: { groupId: string 
           ) : (
             <ol className="space-y-1">
               {standings.map((s, i) => (
-                <li key={s.userId} className="flex items-center justify-between text-sm">
+                <li
+                  key={s.userId}
+                  className={cn(
+                    "flex items-center justify-between rounded-md text-sm",
+                    i === 0 && "mtg-foil border-l-2 border-accent py-1 pl-2 font-medium",
+                  )}
+                >
                   <span>
                     {i + 1}. {s.name}
                   </span>

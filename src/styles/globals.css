@@ -52,34 +52,39 @@
     --mtg-g: 132 42% 42%;
   }
 
+  /*
+   * Dark mode is its own mood (not inverted parchment): deep near-black with an
+   * arcane-purple hue, warm parchment text kept for legibility. Still AA — text
+   * contrast only rises as the background darkens.
+   */
   .dark {
-    --background: 240 18% 10%;
+    --background: 264 24% 7%;
     --foreground: 40 30% 92%;
 
-    --card: 240 16% 13%;
+    --card: 264 18% 11%;
     --card-foreground: 40 30% 92%;
 
-    --muted: 240 12% 20%;
-    --muted-foreground: 240 12% 68%;
+    --muted: 264 12% 19%;
+    --muted-foreground: 260 10% 70%;
 
-    --primary: 265 70% 67%;
-    --primary-foreground: 240 18% 10%;
+    --primary: 265 70% 70%;
+    --primary-foreground: 264 24% 8%;
 
-    --secondary: 240 12% 22%;
+    --secondary: 264 12% 21%;
     --secondary-foreground: 40 30% 92%;
 
-    --accent: 38 78% 60%;
-    --accent-foreground: 240 18% 10%;
+    --accent: 38 80% 62%;
+    --accent-foreground: 264 24% 8%;
 
-    --success: 142 48% 52%;
-    --success-foreground: 240 18% 10%;
+    --success: 142 48% 54%;
+    --success-foreground: 264 24% 8%;
 
-    --destructive: 0 64% 58%;
-    --destructive-foreground: 240 18% 10%;
+    --destructive: 0 64% 60%;
+    --destructive-foreground: 264 24% 8%;
 
-    --border: 240 12% 24%;
-    --input: 240 12% 26%;
-    --ring: 265 70% 67%;
+    --border: 264 12% 23%;
+    --input: 264 12% 25%;
+    --ring: 265 70% 70%;
 
     --mtg-w: 48 70% 82%;
     --mtg-u: 205 72% 58%;
@@ -96,12 +101,31 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    /* Subtle arcane vignette — purely decorative, fixed so it never animates. */
+    /*
+     * Decorative, fixed (never animates), and built from tokens only — no images:
+     *  1) arcane vignette from the top,
+     *  2+3) a faint cross-hatch "parchment grain" (1px repeating lines at very low
+     *       alpha) for paper texture. Kilobytes of CSS, no data URIs.
+     */
     background-image: radial-gradient(
-      125% 100% at 50% 0%,
-      hsl(var(--primary) / 0.06) 0%,
-      transparent 60%
-    );
+        125% 100% at 50% 0%,
+        hsl(var(--primary) / 0.06) 0%,
+        transparent 60%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        hsl(var(--foreground) / 0.015) 0px,
+        hsl(var(--foreground) / 0.015) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        hsl(var(--foreground) / 0.012) 0px,
+        hsl(var(--foreground) / 0.012) 1px,
+        transparent 1px,
+        transparent 3px
+      );
     background-attachment: fixed;
   }
 
@@ -109,6 +133,57 @@
   h2,
   h3 {
     font-family: var(--font-display), ui-serif, Georgia, serif;
+  }
+}
+
+@layer components {
+  /*
+   * Card-frame treatment: the existing drop shadow plus an inset double line
+   * (hairline → card-colored gap → faint border line) that echoes a card frame
+   * without cloning one. Tokens only; the drop-shadow channel values match the
+   * shadow-card theme token. Painted only at the edges (content sits at p-6).
+   */
+  .mtg-card {
+    box-shadow:
+      0 1px 2px hsl(240 24% 13% / 0.04),
+      0 4px 16px hsl(240 24% 13% / 0.06),
+      inset 0 0 0 1px hsl(var(--card-foreground) / 0.05),
+      inset 0 0 0 3px hsl(var(--card)),
+      inset 0 0 0 4px hsl(var(--border) / 0.45);
+  }
+
+  /*
+   * Restrained "foil" sheen for win-highlight moments (the standings leader). A
+   * gold (accent) gradient sweeps across via an overlay; reduced-motion users
+   * keep the static gold treatment but the sweep is disabled by the global rule
+   * below (it parks off-screen, so nothing flickers).
+   */
+  .mtg-foil {
+    position: relative;
+    overflow: hidden;
+  }
+  .mtg-foil::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      hsl(var(--accent) / 0.28) 50%,
+      transparent 62%
+    );
+    transform: translateX(-100%);
+    animation: mtg-foil-sweep 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes mtg-foil-sweep {
+    0%,
+    100% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(100%);
+    }
   }
 }
 
