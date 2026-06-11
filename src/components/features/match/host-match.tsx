@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import { adjustLife, initSeats, type Seat, type SeatCount } from "@/lib/match/life";
 import { finalizeMatch } from "@/lib/services/matches";
+import { TableMode } from "@/components/features/match/table-mode";
 
 export interface Participant {
   userId: string;
@@ -58,6 +59,7 @@ export function HostMatch({
   const [seats, setSeats] = useState<Seat[]>(() => initSeats(4));
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
   const [winnerId, setWinnerId] = useState("");
+  const [tableMode, setTableMode] = useState(false);
 
   function setCount(count: SeatCount) {
     setSeatCount(count);
@@ -111,20 +113,34 @@ export function HostMatch({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Seat count */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Players:</span>
-        {SEAT_OPTIONS.map((n) => (
-          <Button
-            key={n}
-            variant={n === seatCount ? "default" : "outline"}
-            size="sm"
-            onClick={() => setCount(n)}
-          >
-            {n}
-          </Button>
-        ))}
+      {/* Seat count + Table Mode */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Players:</span>
+          {SEAT_OPTIONS.map((n) => (
+            <Button
+              key={n}
+              variant={n === seatCount ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCount(n)}
+            >
+              {n}
+            </Button>
+          ))}
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setTableMode(true)}>
+          Table Mode
+        </Button>
       </div>
+
+      {tableMode ? (
+        <TableMode
+          seats={seats}
+          onBump={bump}
+          onReset={() => setSeats(initSeats(seatCount))}
+          onClose={() => setTableMode(false)}
+        />
+      ) : null}
 
       {/* Local life counter */}
       <div className="grid grid-cols-2 gap-3">
