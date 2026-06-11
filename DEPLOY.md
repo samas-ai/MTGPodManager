@@ -15,7 +15,8 @@ In the Supabase dashboard → SQL Editor, run each, **0001 → 0013**:
 · `0006_deck_delete_set_null` · `0007_harden_mp_update` · `0008_backfill_profiles`
 · `0009_placement` (finishing order) · `0010_deck_stats` (deck win-rate + head-to-head
 views) · `0011_match_notes` (notes/tags) · `0012_group_management` (admin/self RPCs)
-· `0013_delete_group` (admin pod deletion) · `0014_cancel_match` (host/admin force-close).
+· `0013_delete_group` (admin pod deletion) · `0014_cancel_match` (host/admin force-close)
+· `0015_grants` (explicit anon/authenticated table grants — no-op on hosted Supabase).
 Confirm: 7 tables + 2 views (Database → Views), RLS shield on every table, and the
 `finalize_match` / `create_group` / `accept_invite` / `create_invite` functions.
 
