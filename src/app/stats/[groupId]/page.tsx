@@ -49,7 +49,7 @@ export default async function StatsPage({ params }: { params: { groupId: string 
   ]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
       <PageHeader
         title={`${group.name} · Stats`}
         back={{ href: `/groups/${group.id}`, label: "Back to pod" }}

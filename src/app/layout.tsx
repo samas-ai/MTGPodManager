@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cinzel, Inter } from "next/font/google";
 import { VercelMetrics } from "@/components/features/vercel-metrics";
+import { BottomNav } from "@/components/features/nav/bottom-nav";
+import { ActiveMatchPill } from "@/components/features/nav/active-match-pill";
 import "@/styles/globals.css";
 
 // Display serif (Trajan-like, very MTG) for headings; clean sans for body.
@@ -38,6 +40,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <div id="main">{children}</div>
+        <ActiveMatchPill />
+        <BottomNav />
         <VercelMetrics />
       </body>
     </html>

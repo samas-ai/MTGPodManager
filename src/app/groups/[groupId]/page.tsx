@@ -66,7 +66,7 @@ export default async function GroupHomePage({
   ]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
       <PageHeader
         title={group.name}
         back={{ href: "/groups", label: "All pods" }}

@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { PageHeader } from "@/components/ui/page-header";
 import { createGroup, joinGroup } from "@/lib/services/groups";
-import { signOut } from "@/lib/services/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Your pods" };
@@ -32,22 +31,8 @@ export default async function GroupsPage({
   if (error) throw error;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
-      <PageHeader
-        title="Your pods"
-        actions={
-          <>
-            <Link href="/profile" className="px-2 text-sm text-muted-foreground underline">
-              Profile
-            </Link>
-            <form action={signOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                Sign out
-              </Button>
-            </form>
-          </>
-        }
-      />
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+      <PageHeader title="Your pods" />
 
       <AuthMessage error={searchParams.error} />
 

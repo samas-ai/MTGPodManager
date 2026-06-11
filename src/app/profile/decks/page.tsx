@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { ColorPips } from "@/components/features/color-pips";
+import { PageHeader } from "@/components/ui/page-header";
 import { createDeck, deleteDeck, importDeck } from "@/lib/services/decks";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,18 +32,8 @@ export default async function DecksPage({
   if (error) throw error;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">My decks</h1>
-        <nav className="flex items-center gap-3 text-sm text-muted-foreground">
-          <Link href="/profile" className="underline">
-            Profile
-          </Link>
-          <Link href="/groups" className="underline">
-            Pods
-          </Link>
-        </nav>
-      </header>
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+      <PageHeader title="My decks" back={{ href: "/profile", label: "Profile" }} />
 
       <AuthMessage error={searchParams.error} />
 

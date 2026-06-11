@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AuthMessage } from "@/components/features/auth/auth-message";
 import { PageHeader } from "@/components/ui/page-header";
 import { updateDisplayName } from "@/lib/services/profile";
+import { signOut } from "@/lib/services/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Profile" };
@@ -30,8 +31,17 @@ export default async function ProfilePage({
     .maybeSingle();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
-      <PageHeader title="Profile" back={{ href: "/groups", label: "Pods" }} />
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6 pb-24">
+      <PageHeader
+        title="Profile"
+        actions={
+          <form action={signOut}>
+            <Button type="submit" variant="ghost" size="sm">
+              Sign out
+            </Button>
+          </form>
+        }
+      />
 
       <AuthMessage error={searchParams.error} message={searchParams.message} />
 
