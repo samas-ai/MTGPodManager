@@ -222,6 +222,15 @@ export type Database = {
       create_invite: { Args: { p_group_id: string }; Returns: string };
       accept_invite: { Args: { p_code: string }; Returns: string };
       is_group_member: { Args: { g: string }; Returns: boolean };
+      is_group_admin: { Args: { g: string }; Returns: boolean };
+      rename_group: { Args: { p_group_id: string; p_name: string }; Returns: undefined };
+      leave_group: { Args: { p_group_id: string }; Returns: undefined };
+      remove_member: { Args: { p_group_id: string; p_user_id: string }; Returns: undefined };
+      set_admin: {
+        Args: { p_group_id: string; p_user_id: string; p_make_admin: boolean };
+        Returns: undefined;
+      };
+      revoke_invites: { Args: { p_group_id: string }; Returns: undefined };
       finalize_match: {
         Args: { p_match_id: string; p_winner: string; p_placements?: Json };
         Returns: undefined;

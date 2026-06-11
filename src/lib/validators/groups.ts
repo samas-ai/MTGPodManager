@@ -21,5 +21,21 @@ export const joinGroupSchema = z.object({
 
 export const groupIdSchema = z.string().uuid("Invalid group id.");
 
+// Group management (B5). The RPCs re-validate + enforce authorization; these
+// just shape the boundary.
+export const renameGroupSchema = z.object({
+  groupId: z.string().uuid("Invalid group."),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Pod name is required.")
+    .max(60, "Pod name must be 60 characters or fewer."),
+});
+
+export const memberActionSchema = z.object({
+  groupId: z.string().uuid("Invalid group."),
+  userId: z.string().uuid("Invalid member."),
+});
+
 export type CreateGroupInput = z.infer<typeof createGroupSchema>;
 export type JoinGroupInput = z.infer<typeof joinGroupSchema>;

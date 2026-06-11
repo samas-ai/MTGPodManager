@@ -6,7 +6,15 @@ import { AuthMessage } from "@/components/features/auth/auth-message";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { QrCode } from "@/components/features/qr-code";
-import { createInvite } from "@/lib/services/groups";
+import { Input } from "@/components/ui/input";
+import {
+  createInvite,
+  leaveGroup,
+  removeMember,
+  renameGroup,
+  revokeInvites,
+  setAdmin,
+} from "@/lib/services/groups";
 import { rematch, startMatch } from "@/lib/services/matches";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
@@ -50,6 +58,8 @@ export default async function GroupHomePage({
     : { data: [] };
 
   const nameById = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+  const roster = members ?? [];
+  const isAdmin = roster.some((m) => m.user_id === user.id && m.role === "admin");
 
   // Most recent open match (if any) for live-match discovery.
   const { data: openMatch } = await supabase
@@ -107,12 +117,40 @@ export default async function GroupHomePage({
         </CardHeader>
         <CardContent className="space-y-2">
           <ul className="space-y-1">
-            {(members ?? []).map((m) => (
-              <li key={m.user_id} className="flex items-center justify-between text-sm">
-                <span>{nameById.get(m.user_id) ?? "Unknown player"}</span>
-                {m.role === "admin" ? <Badge variant="admin">admin</Badge> : null}
-              </li>
-            ))}
+            {roster.map((m) => {
+              const isSelf = m.user_id === user.id;
+              const memberIsAdmin = m.role === "admin";
+              return (
+                <li key={m.user_id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2 truncate">
+                    <span className="truncate">
+                      {nameById.get(m.user_id) ?? "Unknown player"}
+                      {isSelf ? " (you)" : ""}
+                    </span>
+                    {memberIsAdmin ? <Badge variant="admin">admin</Badge> : null}
+                  </span>
+                  {isAdmin && !isSelf ? (
+                    <span className="flex shrink-0 items-center gap-1">
+                      <form action={setAdmin}>
+                        <input type="hidden" name="groupId" value={group.id} />
+                        <input type="hidden" name="userId" value={m.user_id} />
+                        <input type="hidden" name="makeAdmin" value={memberIsAdmin ? "false" : "true"} />
+                        <Button type="submit" variant="ghost" size="sm">
+                          {memberIsAdmin ? "Demote" : "Make admin"}
+                        </Button>
+                      </form>
+                      <form action={removeMember}>
+                        <input type="hidden" name="groupId" value={group.id} />
+                        <input type="hidden" name="userId" value={m.user_id} />
+                        <Button type="submit" variant="ghost" size="sm">
+                          Remove
+                        </Button>
+                      </form>
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
           <form action={createInvite} className="pt-2">
             <input type="hidden" name="groupId" value={group.id} />
@@ -218,6 +256,43 @@ export default async function GroupHomePage({
           )}
         </CardContent>
       </Card>
+
+      {/* Manage pod — admins only (RPCs re-check authorization regardless). */}
+      {isAdmin ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage pod</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form action={renameGroup} className="flex items-end gap-2">
+              <input type="hidden" name="groupId" value={group.id} />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <label htmlFor="rename" className="text-sm font-medium">
+                  Pod name
+                </label>
+                <Input id="rename" name="name" required maxLength={60} defaultValue={group.name} />
+              </div>
+              <Button type="submit" variant="outline">
+                Rename
+              </Button>
+            </form>
+            <form action={revokeInvites}>
+              <input type="hidden" name="groupId" value={group.id} />
+              <Button type="submit" variant="outline" size="sm">
+                Revoke invite codes
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Leave pod — available to everyone; the sole admin is blocked server-side. */}
+      <form action={leaveGroup}>
+        <input type="hidden" name="groupId" value={group.id} />
+        <Button type="submit" variant="ghost" size="sm" className="self-start text-destructive">
+          Leave pod
+        </Button>
+      </form>
     </main>
   );
 }
