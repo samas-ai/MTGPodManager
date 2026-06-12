@@ -26,12 +26,7 @@ import {
   getStandings,
   getStandingsOverTime,
 } from "@/lib/stats";
-import {
-  getSeasons,
-  getSeasonRecentMatches,
-  getSeasonStandings,
-  type Season,
-} from "@/lib/seasons";
+import { getSeasons, getSeasonStats, type Season } from "@/lib/seasons";
 import { startSeason } from "@/lib/services/seasons";
 
 export const metadata = { title: "Standings" };
@@ -86,29 +81,29 @@ export default async function StatsPage({
         ? (seasons.find((s) => s.id === requested) ?? activeSeason)
         : activeSeason;
 
-  // Deck stats / head-to-head / trends stay all-time in this v1 (season-aware
-  // deck stats can follow); standings + Chronicle reflect the selected scope.
-  const [decks, deckWinrates, headToHead, trends, colors] = await Promise.all([
-    getDeckPlayCounts(supabase, group.id),
-    getDeckWinrates(supabase, group.id),
+  // Head-to-head and the trend stay all-time; everything else honors the
+  // selected season (a season recomputes on read from matches in its range).
+  const [headToHead, trends] = await Promise.all([
     getHeadToHead(supabase, group.id),
     getStandingsOverTime(supabase, group.id),
-    getColorBreakdown(supabase, group.id),
   ]);
-  const maxColorCount = Math.max(1, ...colors.rows.map((r) => r.count));
 
-  const [standings, recent] = selectedSeason
-    ? await Promise.all([
-        getSeasonStandings(supabase, group.id, selectedSeason),
-        getSeasonRecentMatches(supabase, group.id, selectedSeason, 10),
-      ])
+  const scoped = selectedSeason
+    ? await getSeasonStats(supabase, group.id, selectedSeason, 10)
+    : null;
+  const [standings, recent, decks, deckWinrates, colors] = scoped
+    ? ([scoped.standings, scoped.recent, scoped.playCounts, scoped.winrates, scoped.colors] as const)
     : await Promise.all([
         getStandings(supabase, group.id),
         getRecentMatches(supabase, group.id, 10),
+        getDeckPlayCounts(supabase, group.id),
+        getDeckWinrates(supabase, group.id),
+        getColorBreakdown(supabase, group.id),
       ]);
 
-  // Most-played bars are scaled to the busiest deck (1 floor avoids div-by-zero).
+  // Bars are scaled to the busiest row (1 floor avoids div-by-zero).
   const maxPlays = Math.max(1, ...decks.map((d) => d.timesPlayed));
+  const maxColorCount = Math.max(1, ...colors.rows.map((r) => r.count));
   const scopeLabel = selectedSeason ? selectedSeason.name : "All-time";
 
   return (
@@ -184,8 +179,9 @@ export default async function StatsPage({
           {selectedSeason ? (
             <p className="text-xs text-muted-foreground">
               {formatDate(selectedSeason.startedAt)} –{" "}
-              {selectedSeason.endedAt ? formatDate(selectedSeason.endedAt) : "now"}. Standings and
-              Chronicle below cover this season; deck stats are all-time.
+              {selectedSeason.endedAt ? formatDate(selectedSeason.endedAt) : "now"}. Standings,
+              decks, colors, and Chronicle cover this season; head-to-head and the trend are
+              all-time.
             </p>
           ) : null}
         </CardContent>
