@@ -21,7 +21,7 @@ The MVP is correct but young. These items convert "verified by hand" into "verif
 | A7 | **Import rate limiting** — per-user throttle on the Archidekt/Scryfall import action (e.g. token bucket in Postgres) | Protects free-tier quotas and honors Scryfall etiquette under abuse, not just good behavior | S–M |
 | A8 | **Dependency hygiene** — Dependabot/Renovate with `@supabase/ssr` + `@supabase/supabase-js` grouped as one update (documented skew quirk); Next.js patch cadence | Prevents the known version-skew foot-gun from recurring | S |
 | A9 | **Assistive-tech pass** — real VoiceOver (iOS) + TalkBack run of join/verify/finalize; fix findings | A11y Pass 1 was code-level; AT behavior is only knowable on-device | M |
-| A10 | **Data lifecycle** — confirm Supabase backup posture on free tier; add a "export my group's matches as CSV/JSON" server action | Pods accumulate irreplaceable history; users should be able to take it with them | M |
+| A10 | ~~**Data lifecycle** — export my group's matches as CSV/JSON~~ — **descoped (user decision 2026-06-12)**; not planned. Backup posture remains a free-tier ops note in DEPLOY.md. | — | — |
 | A11 | **Free-tier usage watch → upgrade trigger** — instrument Realtime connection counts + DB size against the documented thresholds in DEPLOY.md | Turns "watch usage" from a memory note into a measurable signal | S |
 
 **Exit criteria for the track:** CI green on every PR including pgTAP + E2E; Sentry quiet; CWV green on-device; CSP enforced.
@@ -142,7 +142,7 @@ Dependency-ordered, one phase at a time, commit/checkpoint per working item — 
 | **9 — Stats that pay off** | B1 (placement migration first) → B2 → B3 → B4; A3 E2E lands here against the now-richer golden path | ~2–3 weeks |
 | **10 — Table-side UX** | C1 nav, C2 Table Mode, C3 QR join, C5 dark mode, B5 group management, B6 rematch | ~2 weeks |
 | **11 — The flavor pass** | D0 legal → D1 art → D2 mana language → D3 copy → D4 texture; C4 stats viz + C6 onboarding ride along | ~1–2 weeks |
-| **12 — Horizon (by demand)** | B7 picks (seasons/D5, archetype breakdowns, commander damage, Moxfield), A9, A10, D6 extras | ongoing |
+| **12 — Horizon (by demand)** | B7 picks (seasons/D5, archetype breakdowns, commander damage, Moxfield), A9, D6 extras (A10 export descoped) | ongoing |
 
 ### Sequencing rationale
 - **Quality before features** (Phase 8): the next migration (B1) should land on a repo where CI + pgTAP actually gate merges.
