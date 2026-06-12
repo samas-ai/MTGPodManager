@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { QrCode } from "@/components/features/qr-code";
 import { StatBar } from "@/components/features/stat-bar";
+import { GettingStarted } from "@/components/features/getting-started";
+import { ShareInvite } from "@/components/features/share-invite";
 import { DeletePod } from "@/components/features/group/delete-pod";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,6 +83,16 @@ export default async function GroupHomePage({
   ]);
   const lastFinalized = recentMatches[0] ?? null;
 
+  // First-run onboarding state (decks_all_own scopes the count to this user).
+  const { count: myDeckCount } = await supabase
+    .from("decks")
+    .select("id", { count: "exact", head: true });
+  const onboarding = {
+    invited: roster.length > 1,
+    hasDeck: (myDeckCount ?? 0) > 0,
+    loggedMatch: recentMatches.length > 0,
+  };
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-5xl">
       <PageHeader
@@ -94,6 +106,28 @@ export default async function GroupHomePage({
       />
 
       <AuthMessage error={searchParams.error} message={searchParams.message} />
+
+      <GettingStarted
+        steps={[
+          { label: "Create your pod", done: true, hint: "" },
+          {
+            label: "Invite your playgroup",
+            done: onboarding.invited,
+            hint: "generate an invite code in Members below",
+          },
+          {
+            label: "Register a deck",
+            done: onboarding.hasDeck,
+            hint: "sleeve one up in My decks",
+            href: "/profile/decks",
+          },
+          {
+            label: "Log your first match",
+            done: onboarding.loggedMatch,
+            hint: "tap Start match below",
+          },
+        ]}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 md:items-start">
       {searchParams.invite ? (
@@ -111,6 +145,10 @@ export default async function GroupHomePage({
             <p className="text-center text-sm text-muted-foreground">
               Scan to join, or share the code. Expires in 14 days.
             </p>
+            <ShareInvite
+              url={`${getOrigin()}/join/${searchParams.invite}`}
+              code={searchParams.invite}
+            />
           </CardContent>
         </Card>
       ) : null}

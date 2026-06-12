@@ -48,9 +48,13 @@ export default async function GroupsPage({
             </Link>
           ))
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No pods yet. Create one or join with an invite code.
-          </p>
+          <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground sm:col-span-2 lg:col-span-3">
+            <p className="font-medium text-foreground">Welcome — let&apos;s get your pod going.</p>
+            <p className="mt-1">
+              Spin up your first pod below, or join an existing one with an invite code. Then
+              register a deck and you&apos;re ready to log games.
+            </p>
+          </div>
         )}
       </section>
 

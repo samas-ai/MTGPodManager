@@ -106,9 +106,13 @@ export default async function DecksPage({
             </div>
           ))
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No decks sleeved up yet. Add one below — you&apos;ll pick it when logging a match.
-          </p>
+          <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground sm:col-span-2 xl:col-span-3">
+            <p className="font-medium text-foreground">No decks sleeved up yet.</p>
+            <p className="mt-1">
+              Import from Archidekt or add one manually below — you&apos;ll pick it when logging a
+              match, and your commander&apos;s art shows up here.
+            </p>
+          </div>
         )}
       </section>
 
