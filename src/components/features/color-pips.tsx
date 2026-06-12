@@ -66,6 +66,25 @@ export function colorIdentityLabel(identity: string[]): string | null {
   return COMBO_NAMES[colors.join("")] ?? null;
 }
 
+const COLOR_NAMES: Record<string, string> = {
+  W: "White",
+  U: "Blue",
+  B: "Black",
+  R: "Red",
+  G: "Green",
+};
+
+/**
+ * A display name for ANY color identity: "Colorless", "Mono-Green", a guild/
+ * shard/wedge name, or an "N-color" fallback. Pure — unit-tested.
+ */
+export function colorComboName(identity: string[]): string {
+  const colors = ordered(identity);
+  if (colors.length === 0) return "Colorless";
+  if (colors.length === 1) return `Mono-${COLOR_NAMES[colors[0]!]}`;
+  return COMBO_NAMES[colors.join("")] ?? `${colors.length}-color`;
+}
+
 export function ColorPips({ identity, className }: { identity: string[]; className?: string }) {
   const colors = ordered(identity);
 

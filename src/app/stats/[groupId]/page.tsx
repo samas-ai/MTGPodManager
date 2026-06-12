@@ -14,9 +14,11 @@ import { SeasonSymbol } from "@/components/features/season-symbol";
 import {
   ColorPips,
   ColorIdentityEdge,
+  colorComboName,
   colorIdentityLabel,
 } from "@/components/features/color-pips";
 import {
+  getColorBreakdown,
   getDeckPlayCounts,
   getDeckWinrates,
   getHeadToHead,
@@ -86,12 +88,14 @@ export default async function StatsPage({
 
   // Deck stats / head-to-head / trends stay all-time in this v1 (season-aware
   // deck stats can follow); standings + Chronicle reflect the selected scope.
-  const [decks, deckWinrates, headToHead, trends] = await Promise.all([
+  const [decks, deckWinrates, headToHead, trends, colors] = await Promise.all([
     getDeckPlayCounts(supabase, group.id),
     getDeckWinrates(supabase, group.id),
     getHeadToHead(supabase, group.id),
     getStandingsOverTime(supabase, group.id),
+    getColorBreakdown(supabase, group.id),
   ]);
+  const maxColorCount = Math.max(1, ...colors.rows.map((r) => r.count));
 
   const [standings, recent] = selectedSeason
     ? await Promise.all([
@@ -335,6 +339,37 @@ export default async function StatsPage({
                   <StatBar value={d.pct} max={100} />
                 </li>
               ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pod colors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {colors.rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No games chronicled yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {colors.rows.map((c, i) => {
+                const pct = colors.total > 0 ? Math.round((c.count / colors.total) * 100) : 0;
+                return (
+                  <li key={`${c.identity.join("") || "C"}-${i}`} className="flex flex-col gap-1 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5">
+                        <ColorPips identity={c.identity} />
+                        {c.identity.length > 0 ? <span>{colorComboName(c.identity)}</span> : null}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">
+                        {pct}% · {c.count}
+                      </span>
+                    </div>
+                    <StatBar value={c.count} max={maxColorCount} />
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

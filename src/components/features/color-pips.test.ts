@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { colorIdentityLabel } from "./color-pips";
+import { colorComboName, colorIdentityLabel } from "./color-pips";
 
 describe("colorIdentityLabel", () => {
   it("returns null for colorless and mono-color identities", () => {
@@ -27,5 +27,19 @@ describe("colorIdentityLabel", () => {
 
   it("ignores unknown tokens that aren't WUBRG", () => {
     expect(colorIdentityLabel(["B", "G", "X"])).toBe("Golgari");
+  });
+});
+
+describe("colorComboName", () => {
+  it("names colorless and mono identities", () => {
+    expect(colorComboName([])).toBe("Colorless");
+    expect(colorComboName(["G"])).toBe("Mono-Green");
+    expect(colorComboName(["W"])).toBe("Mono-White");
+  });
+
+  it("uses guild/shard/wedge names for multicolor", () => {
+    expect(colorComboName(["B", "G"])).toBe("Golgari");
+    expect(colorComboName(["R", "U", "G"])).toBe("Temur");
+    expect(colorComboName(["W", "U", "B", "R", "G"])).toBe("Five-Color");
   });
 });

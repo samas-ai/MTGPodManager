@@ -243,6 +243,61 @@ export async function getHeadToHead(supabase: DB, groupId: string): Promise<Head
     );
 }
 
+export interface ColorBreakdownRow {
+  /** Colors in canonical WUBRG order ([] = colorless). */
+  identity: string[];
+  /** How many finalized-match decks had this exact identity. */
+  count: number;
+}
+
+/**
+ * Color-identity breakdown for a pod: how often each color identity is brought
+ * to finalized matches (from the snapshot added in 0017). Computed on read like
+ * the other stats — two scoped reads, no embedded joins. `total` is the number
+ * of deck appearances counted; `prevalence` counts how many of those included
+ * each single color (W/U/B/R/G).
+ */
+export async function getColorBreakdown(
+  supabase: DB,
+  groupId: string,
+): Promise<{ rows: ColorBreakdownRow[]; total: number; prevalence: Record<string, number> }> {
+  const ORDER = ["W", "U", "B", "R", "G"];
+
+  const { data: matches } = await supabase
+    .from("matches")
+    .select("id")
+    .eq("group_id", groupId)
+    .eq("status", "finalized");
+  const ids = (matches ?? []).map((m) => m.id);
+  if (ids.length === 0) return { rows: [], total: 0, prevalence: {} };
+
+  const { data: parts } = await supabase
+    .from("match_participants")
+    .select("color_identity_snapshot")
+    .in("match_id", ids);
+
+  const byKey = new Map<string, ColorBreakdownRow>();
+  const prevalence: Record<string, number> = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+  let total = 0;
+
+  for (const p of parts ?? []) {
+    const raw = p.color_identity_snapshot;
+    if (raw === null) continue; // pre-0017 snapshots have no color data
+    const identity = ORDER.filter((c) => raw.includes(c));
+    const key = identity.join("") || "C";
+    const row = byKey.get(key) ?? { identity, count: 0 };
+    row.count += 1;
+    byKey.set(key, row);
+    for (const c of identity) prevalence[c] = (prevalence[c] ?? 0) + 1;
+    total += 1;
+  }
+
+  const rows = [...byKey.values()].sort(
+    (a, b) => b.count - a.count || a.identity.length - b.identity.length,
+  );
+  return { rows, total, prevalence };
+}
+
 export async function getRecentMatches(
   supabase: DB,
   groupId: string,
