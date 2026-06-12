@@ -68,7 +68,7 @@ export default async function DecksPage({
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {decks && decks.length > 0 ? (
-          decks.map((d) => (
+          decks.map((d, i) => (
             <div
               key={d.id}
               className="relative flex flex-col gap-3 overflow-hidden rounded-md border border-border bg-card p-4"
@@ -79,6 +79,7 @@ export default async function DecksPage({
                 artCrop={d.art_crop_url}
                 artist={d.artist}
                 alt={`${d.commander_name} art`}
+                priority={i === 0}
               />
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">

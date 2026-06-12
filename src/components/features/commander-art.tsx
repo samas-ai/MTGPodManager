@@ -17,19 +17,29 @@ export function CommanderArt({
   artist,
   alt,
   className,
+  priority = false,
 }: {
   cardImage: string | null;
   artCrop: string | null;
   artist: string | null;
   alt: string;
   className?: string;
+  /** Set on the above-the-fold image that's likely the LCP, so it preloads. */
+  priority?: boolean;
 }) {
   if (cardImage) {
     return (
       <div className={cn("flex justify-center", className)}>
         {/* Native Scryfall card ratio (488×680); contained so it never crops. */}
         <div className="relative aspect-[488/680] w-full max-w-[224px] overflow-hidden rounded-xl">
-          <Image src={cardImage} alt={alt} fill sizes="224px" className="object-contain" />
+          <Image
+            src={cardImage}
+            alt={alt}
+            fill
+            sizes="224px"
+            priority={priority}
+            className="object-contain"
+          />
         </div>
       </div>
     );

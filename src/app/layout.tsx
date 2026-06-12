@@ -7,9 +7,16 @@ import { Footer } from "@/components/features/footer";
 import "@/styles/globals.css";
 
 // Display serif (Trajan-like, very MTG) for headings; clean sans for body.
-// next/font self-hosts the files at build time — no runtime requests.
-const display = Cinzel({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
+// next/font self-hosts the files at build time — no runtime requests. Only the
+// two display weights actually used (600 CardTitle, 700 headings) are loaded,
+// and display:"swap" lets text paint immediately in the fallback (better FCP/LCP).
+const display = Cinzel({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+  variable: "--font-display",
+});
+const sans = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),

@@ -126,7 +126,8 @@
         transparent 1px,
         transparent 3px
       );
-    background-attachment: fixed;
+    /* Not background-attachment:fixed — that forces a full-viewport repaint on
+       every scroll frame (costly on mobile). The texture scrolls with content. */
   }
 
   h1,

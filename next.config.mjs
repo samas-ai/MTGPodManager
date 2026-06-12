@@ -48,6 +48,10 @@ const nextConfig = {
     // Commander art (Scryfall). next/image fetches + optimizes server-side and
     // serves from our own origin, so the browser stays within CSP 'self'.
     remotePatterns: [{ protocol: "https", hostname: "cards.scryfall.io" }],
+    // Smaller payloads (AVIF→WebP) → faster image LCP; cache the optimized
+    // output a day so repeat visits don't re-encode (Scryfall art is immutable).
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

@@ -82,6 +82,7 @@ export default async function JoinMatchPage({
                     artCrop={mine.art_crop_snapshot}
                     artist={mine.artist_snapshot}
                     alt={`${mine.commander_snapshot ?? "Commander"} art`}
+                    priority
                   />
                   {mine.color_identity_snapshot && mine.color_identity_snapshot.length > 0 ? (
                     <div className="flex items-center gap-2">
