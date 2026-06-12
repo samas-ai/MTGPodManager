@@ -144,6 +144,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      seasons: {
+        Row: {
+          id: string;
+          group_id: string;
+          name: string;
+          started_at: string;
+          ended_at: string | null;
+          symbol_seed: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          group_id: string;
+          name: string;
+          started_at?: string;
+          ended_at?: string | null;
+          symbol_seed?: number;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          group_id?: string;
+          name?: string;
+          started_at?: string;
+          ended_at?: string | null;
+          symbol_seed?: number;
+          created_by?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       match_participants: {
         Row: {
           id: string;
@@ -260,6 +293,7 @@ export type Database = {
         Returns: undefined;
       };
       cancel_match: { Args: { p_match_id: string }; Returns: undefined };
+      start_season: { Args: { p_group_id: string; p_name: string }; Returns: string };
     };
     Enums: { group_role: GroupRole; deck_source: DeckSource; match_status: MatchStatus };
     CompositeTypes: {

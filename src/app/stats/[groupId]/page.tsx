@@ -1,11 +1,16 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { AuthMessage } from "@/components/features/auth/auth-message";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { Sparkline } from "@/components/features/sparkline";
 import { StatBar } from "@/components/features/stat-bar";
+import { SeasonSymbol } from "@/components/features/season-symbol";
 import {
   ColorPips,
   ColorIdentityEdge,
@@ -19,6 +24,13 @@ import {
   getStandings,
   getStandingsOverTime,
 } from "@/lib/stats";
+import {
+  getSeasons,
+  getSeasonRecentMatches,
+  getSeasonStandings,
+  type Season,
+} from "@/lib/seasons";
+import { startSeason } from "@/lib/services/seasons";
 
 export const metadata = { title: "Standings" };
 
@@ -31,7 +43,13 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export default async function StatsPage({ params }: { params: { groupId: string } }) {
+export default async function StatsPage({
+  params,
+  searchParams,
+}: {
+  params: { groupId: string };
+  searchParams: { season?: string; error?: string; message?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
@@ -46,17 +64,48 @@ export default async function StatsPage({ params }: { params: { groupId: string 
     .maybeSingle();
   if (!group) notFound();
 
-  const [standings, decks, deckWinrates, headToHead, trends, recent] = await Promise.all([
-    getStandings(supabase, group.id),
+  const { data: membership } = await supabase
+    .from("group_members")
+    .select("role")
+    .eq("group_id", group.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const isAdmin = membership?.role === "admin";
+
+  const seasons = await getSeasons(supabase, group.id);
+  const activeSeason = seasons.find((s) => s.isActive) ?? null;
+  // Scope: ?season=all → all-time; ?season=<id> → that season; default → active
+  // season if one exists, else all-time.
+  const requested = searchParams.season;
+  const selectedSeason: Season | null =
+    requested === "all"
+      ? null
+      : requested
+        ? (seasons.find((s) => s.id === requested) ?? activeSeason)
+        : activeSeason;
+
+  // Deck stats / head-to-head / trends stay all-time in this v1 (season-aware
+  // deck stats can follow); standings + Chronicle reflect the selected scope.
+  const [decks, deckWinrates, headToHead, trends] = await Promise.all([
     getDeckPlayCounts(supabase, group.id),
     getDeckWinrates(supabase, group.id),
     getHeadToHead(supabase, group.id),
     getStandingsOverTime(supabase, group.id),
-    getRecentMatches(supabase, group.id, 10),
   ]);
+
+  const [standings, recent] = selectedSeason
+    ? await Promise.all([
+        getSeasonStandings(supabase, group.id, selectedSeason),
+        getSeasonRecentMatches(supabase, group.id, selectedSeason, 10),
+      ])
+    : await Promise.all([
+        getStandings(supabase, group.id),
+        getRecentMatches(supabase, group.id, 10),
+      ]);
 
   // Most-played bars are scaled to the busiest deck (1 floor avoids div-by-zero).
   const maxPlays = Math.max(1, ...decks.map((d) => d.timesPlayed));
+  const scopeLabel = selectedSeason ? selectedSeason.name : "All-time";
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 p-6 pb-24 lg:max-w-5xl">
@@ -66,10 +115,85 @@ export default async function StatsPage({ params }: { params: { groupId: string 
         back={{ href: `/groups/${group.id}`, label: "Back to pod" }}
       />
 
+      <AuthMessage error={searchParams.error} message={searchParams.message} />
+
+      {/* Seasons ("Sets"): scope selector + admin control. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Seasons</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/stats/${group.id}?season=all`}
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm",
+                !selectedSeason
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border text-muted-foreground hover:bg-muted",
+              )}
+            >
+              All-time
+            </Link>
+            {seasons.map((s) => (
+              <Link
+                key={s.id}
+                href={`/stats/${group.id}?season=${s.id}`}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm",
+                  selectedSeason?.id === s.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <SeasonSymbol seed={s.symbolSeed} className="h-4 w-4" />
+                <span>{s.name}</span>
+                {s.isActive ? <Badge variant="success">active</Badge> : null}
+              </Link>
+            ))}
+            {seasons.length === 0 ? (
+              <span className="text-sm text-muted-foreground">
+                No seasons yet — start one to archive a stretch of games like a set.
+              </span>
+            ) : null}
+          </div>
+          {isAdmin ? (
+            <form action={startSeason} className="flex items-end gap-2">
+              <input type="hidden" name="groupId" value={group.id} />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <label htmlFor="seasonName" className="text-sm font-medium">
+                  Start a new season
+                </label>
+                <Input
+                  id="seasonName"
+                  name="name"
+                  required
+                  maxLength={60}
+                  placeholder="Bloomburrow Nights"
+                />
+              </div>
+              <Button type="submit" variant="outline">
+                Start
+              </Button>
+            </form>
+          ) : null}
+          {selectedSeason ? (
+            <p className="text-xs text-muted-foreground">
+              {formatDate(selectedSeason.startedAt)} –{" "}
+              {selectedSeason.endedAt ? formatDate(selectedSeason.endedAt) : "now"}. Standings and
+              Chronicle below cover this season; deck stats are all-time.
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 md:grid-cols-2 md:items-start">
       <Card>
         <CardHeader>
-          <CardTitle>Standings</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            {selectedSeason ? <SeasonSymbol seed={selectedSeason.symbolSeed} /> : null}
+            <span>Standings · {scopeLabel}</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {standings.length === 0 ? (
