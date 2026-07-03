@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createDeckSchema, deckIdSchema } from "@/lib/validators/decks";
 import { archidektUrlSchema } from "@/lib/validators/import";
 import { importArchidektDeck } from "@/lib/services/import";
-import { resolveCommanders } from "@/lib/services/scryfall";
+import { resolveCommanderByName } from "@/lib/services/scryfall";
 
 /**
  * Deck registration Server Actions (F2, manual entry only). Decks are strictly
@@ -34,9 +34,12 @@ export async function createDeck(formData: FormData): Promise<void> {
   if (!user) redirect("/sign-in");
 
   // Best-effort commander resolve (the PRD's "Scryfall-resolved commander" for
-  // manual entry): enriches the deck with color identity + commander art when
-  // Scryfall recognizes the name. Any failure (offline, typo, not found) is
-  // swallowed and the deck still saves — the manual path stays a guarantee.
+  // manual entry). A FUZZY name lookup means a partial/near-miss name still
+  // resolves, so a manual deck gets the same identity + art + card image as an
+  // imported one. On success we also adopt Scryfall's canonical commander name.
+  // Any failure (offline, unknown) is swallowed and the deck still saves with
+  // the typed name — the manual path stays a guarantee.
+  let commanderName = parsed.data.commanderName;
   let enrichment: {
     commander_scryfall_id?: string;
     color_identity?: string[];
@@ -44,9 +47,10 @@ export async function createDeck(formData: FormData): Promise<void> {
     card_image_url?: string | null;
     artist?: string | null;
   } = {};
-  const resolved = await resolveCommanders([parsed.data.commanderName]);
-  if (resolved.ok && resolved.data[0]) {
-    const c = resolved.data[0];
+  const resolved = await resolveCommanderByName(parsed.data.commanderName);
+  if (resolved.ok) {
+    const c = resolved.data;
+    commanderName = c.name;
     enrichment = {
       commander_scryfall_id: c.scryfallId,
       color_identity: c.colorIdentity,
@@ -59,7 +63,7 @@ export async function createDeck(formData: FormData): Promise<void> {
   const { error } = await supabase.from("decks").insert({
     user_id: user.id,
     name: parsed.data.name,
-    commander_name: parsed.data.commanderName,
+    commander_name: commanderName,
     source: "manual",
     ...enrichment,
   });

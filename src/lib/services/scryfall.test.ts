@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveCommanders } from "./scryfall";
+import { resolveCommanderByName, resolveCommanders } from "./scryfall";
 
 function mockFetchOnce(impl: (url: string, init?: RequestInit) => unknown) {
   const fn = vi.fn(impl as (...args: unknown[]) => unknown);
@@ -98,5 +98,53 @@ describe("resolveCommanders", () => {
   it("errors with no names", async () => {
     const r = await resolveCommanders([]);
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("resolveCommanderByName (fuzzy)", () => {
+  it("resolves a single commander by approximate name + sends headers", async () => {
+    const fn = mockFetchOnce(() => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "sf-9",
+        name: "Atraxa, Praetors' Voice",
+        color_identity: ["W", "U", "B", "G"],
+        artist: "Victor Adame Minguez",
+        image_uris: {
+          art_crop: "https://cards.scryfall.io/art_crop/sf-9.jpg",
+          normal: "https://cards.scryfall.io/normal/sf-9.jpg",
+        },
+      }),
+    }));
+
+    const r = await resolveCommanderByName("atraxa");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.name).toBe("Atraxa, Praetors' Voice");
+      expect(r.data.scryfallId).toBe("sf-9");
+      expect(r.data.colorIdentity).toEqual(["W", "U", "B", "G"]);
+      expect(r.data.cardImage).toBe("https://cards.scryfall.io/normal/sf-9.jpg");
+      expect(r.data.artist).toBe("Victor Adame Minguez");
+    }
+
+    // Hits the fuzzy named endpoint with etiquette headers.
+    const url = fn.mock.calls[0]?.[0] as string;
+    expect(url).toContain("/cards/named?fuzzy=");
+    const headers = (fn.mock.calls[0]?.[1] as RequestInit).headers as Record<string, string>;
+    expect(headers["User-Agent"]).toBeTruthy();
+  });
+
+  it("errors when the name is not recognized (404)", async () => {
+    mockFetchOnce(() => ({ ok: false, status: 404, json: async () => ({ object: "error" }) }));
+    const r = await resolveCommanderByName("zzzznotacommander");
+    expect(r.ok).toBe(false);
+  });
+
+  it("errors on an empty name without calling the network", async () => {
+    const fn = mockFetchOnce(() => ({ ok: true, status: 200, json: async () => ({}) }));
+    const r = await resolveCommanderByName("   ");
+    expect(r.ok).toBe(false);
+    expect(fn).not.toHaveBeenCalled();
   });
 });

@@ -12,6 +12,7 @@ import { err, ok, type Result } from "@/lib/result";
  */
 
 const COLLECTION_URL = "https://api.scryfall.com/cards/collection";
+const NAMED_URL = "https://api.scryfall.com/cards/named";
 const TIMEOUT_MS = 8000;
 
 export interface ResolvedCommander {
@@ -51,6 +52,17 @@ function artistOf(card: ScryfallCard): string | null {
   return card.artist ?? card.card_faces?.[0]?.artist ?? null;
 }
 
+function toResolved(card: ScryfallCard): ResolvedCommander {
+  return {
+    name: card.name,
+    scryfallId: card.id,
+    colorIdentity: card.color_identity ?? [],
+    artCrop: artOf(card),
+    cardImage: cardImageOf(card),
+    artist: artistOf(card),
+  };
+}
+
 function userAgent(): string {
   return process.env.SCRYFALL_USER_AGENT ?? "MTGPodManager/0.1";
 }
@@ -87,17 +99,47 @@ export async function resolveCommanders(names: string[]): Promise<Result<Resolve
       return err("Scryfall didn't recognize that commander.");
     }
 
-    const resolved: ResolvedCommander[] = cards.map((c) => ({
-      name: c.name,
-      scryfallId: c.id,
-      colorIdentity: c.color_identity ?? [],
-      artCrop: artOf(c),
-      cardImage: cardImageOf(c),
-      artist: artistOf(c),
-    }));
-    return ok(resolved);
+    return ok(cards.map(toResolved));
   } catch (e) {
     console.error("[scryfall] lookup error", e);
+    return err("Couldn't reach Scryfall to verify the commander.");
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Resolve a SINGLE commander by (approximate) name via Scryfall's fuzzy `named`
+ * endpoint — for manual deck entry, where the name is typed freehand. Fuzzy
+ * matching means a partial or slightly-off name ("atraxa") still resolves to the
+ * real card, so a manual deck gets the same identity + art + card image as an
+ * imported one. Returns the canonical card so the caller can store the real name.
+ */
+export async function resolveCommanderByName(name: string): Promise<Result<ResolvedCommander>> {
+  const wanted = name.trim();
+  if (!wanted) return err("No commander to resolve.");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${NAMED_URL}?fuzzy=${encodeURIComponent(wanted)}`, {
+      headers: { "User-Agent": userAgent(), Accept: "application/json" },
+      signal: controller.signal,
+    });
+
+    // 404 = no/ambiguous match; treat as "not recognized" (caller falls back).
+    if (res.status === 404) return err("Scryfall didn't recognize that commander.");
+    if (!res.ok) {
+      console.error("[scryfall] named request failed", res.status);
+      return err("Couldn't reach Scryfall to verify the commander.");
+    }
+
+    const card = (await res.json()) as ScryfallCard;
+    if (!card?.id) return err("Scryfall didn't recognize that commander.");
+    return ok(toResolved(card));
+  } catch (e) {
+    console.error("[scryfall] named lookup error", e);
     return err("Couldn't reach Scryfall to verify the commander.");
   } finally {
     clearTimeout(timer);
