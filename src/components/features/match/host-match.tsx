@@ -5,17 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
-import {
-  adjustLife,
-  applyCommanderDamage,
-  initSeats,
-  resizeSeats,
-  type Seat,
-  type SeatCount,
-} from "@/lib/match/life";
+import { adjustLife, initSeats, resizeSeats, type Seat, type SeatCount } from "@/lib/match/life";
 import { finalizeMatch } from "@/lib/services/matches";
 import { TableMode } from "@/components/features/match/table-mode";
-import { CommanderDamage } from "@/components/features/match/commander-damage";
 
 export interface Participant {
   userId: string;
@@ -76,10 +68,6 @@ export function HostMatch({
 
   const bump = useCallback((seatId: number, delta: number) => {
     setSeats((prev) => adjustLife(prev, seatId, delta));
-  }, []);
-
-  const cmdDmg = useCallback((targetId: number, sourceId: number, delta: number) => {
-    setSeats((prev) => applyCommanderDamage(prev, targetId, sourceId, delta));
   }, []);
 
   // Assign joined players to seats by join order (participants are ordered by
@@ -166,7 +154,6 @@ export function HostMatch({
           seats={seats}
           seatLabel={seatLabel}
           onBump={bump}
-          onCommanderDamage={cmdDmg}
           onReset={() => setSeats(initSeats(seatCount))}
           onClose={() => setTableMode(false)}
         />
@@ -223,14 +210,6 @@ export function HostMatch({
                 >
                   +5
                 </Button>
-              </div>
-              <div className="w-full">
-                <CommanderDamage
-                  seat={seat}
-                  others={seats.filter((s) => s.id !== seat.id)}
-                  onChange={(sourceId, delta) => cmdDmg(seat.id, sourceId, delta)}
-                  labelFor={seatLabel}
-                />
               </div>
             </CardContent>
           </Card>

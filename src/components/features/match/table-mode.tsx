@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Seat } from "@/lib/match/life";
-import { CommanderDamage } from "@/components/features/match/commander-damage";
 
 /**
  * Full-screen "Table Mode" life counter for the host phone laid on the table.
@@ -103,14 +102,12 @@ export function TableMode({
   seats,
   seatLabel,
   onBump,
-  onCommanderDamage,
   onReset,
   onClose,
 }: {
   seats: Seat[];
   seatLabel: (seatId: number) => string;
   onBump: (seatId: number, delta: number) => void;
-  onCommanderDamage: (targetId: number, sourceId: number, delta: number) => void;
   onReset: () => void;
   onClose: () => void;
 }) {
@@ -226,16 +223,6 @@ export function TableMode({
               >
                 −
               </HoldZone>
-            </div>
-            {/* Commander damage: tap an opponent chip to add 1 (also −1 life). */}
-            <div className="pointer-events-auto absolute inset-x-1 bottom-1 z-20">
-              <CommanderDamage
-                seat={seat}
-                others={seats.filter((s) => s.id !== seat.id)}
-                onChange={(sourceId, delta) => onCommanderDamage(seat.id, sourceId, delta)}
-                labelFor={seatLabel}
-                compact
-              />
             </div>
           </div>
         ))}
