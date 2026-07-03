@@ -52,6 +52,18 @@ export default async function JoinMatchPage({
     .eq("user_id", user.id)
     .maybeSingle();
 
+  // Your seat = your position in join order (seats are assigned as players join).
+  let seatNumber: number | null = null;
+  if (mine?.verified) {
+    const { data: order } = await supabase
+      .from("match_participants")
+      .select("user_id")
+      .eq("match_id", match.id)
+      .order("joined_at", { ascending: true });
+    const idx = (order ?? []).findIndex((p) => p.user_id === user.id);
+    seatNumber = idx >= 0 ? idx + 1 : null;
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 p-6">
       <PageHeader title="Join match" back={{ href: `/groups/${match.group_id}`, label: "Back to pod" }} />
@@ -94,8 +106,9 @@ export default async function JoinMatchPage({
                       ) : null}
                     </div>
                   ) : null}
-                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                     <Badge variant="success">verified</Badge>
+                    {seatNumber ? <Badge>Seat {seatNumber}</Badge> : null}
                     Waiting for the host to record the result.
                   </p>
                 </div>

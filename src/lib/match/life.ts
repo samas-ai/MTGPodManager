@@ -31,6 +31,18 @@ export function adjustLife(seats: Seat[], seatId: number, delta: number): Seat[]
 }
 
 /**
+ * Resize to `count` seats, preserving the life + commander damage of the seats
+ * that remain (unlike initSeats, which resets everything). Used to auto-grow the
+ * grid as players join a match without wiping totals mid-setup.
+ */
+export function resizeSeats(seats: Seat[], count: SeatCount): Seat[] {
+  return Array.from(
+    { length: count },
+    (_, i) => seats[i] ?? { id: i + 1, life: STARTING_LIFE, commanderDamage: {} },
+  );
+}
+
+/**
  * Apply commander damage to `targetId` from `sourceId`. The per-source tally
  * floors at 0; the target's life moves by the *actual* tally change (so undoing
  * restores life exactly and a floored decrement can't inflate life). Returns a

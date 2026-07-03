@@ -9,6 +9,7 @@ import {
   adjustLife,
   applyCommanderDamage,
   initSeats,
+  resizeSeats,
   type Seat,
   type SeatCount,
 } from "@/lib/match/life";
@@ -81,6 +82,22 @@ export function HostMatch({
     setSeats((prev) => applyCommanderDamage(prev, targetId, sourceId, delta));
   }, []);
 
+  // Assign joined players to seats by join order (participants are ordered by
+  // joined_at): seat 1 = first to join, etc. Grow the grid to fit new joiners,
+  // preserving current life/commander damage (no reset mid-setup). Capped at 4.
+  useEffect(() => {
+    const needed = Math.min(4, participants.length);
+    if (needed > seatCount) {
+      setSeatCount(needed as SeatCount);
+      setSeats((prev) => resizeSeats(prev, needed as SeatCount));
+    }
+  }, [participants.length, seatCount]);
+
+  const seatLabel = useCallback(
+    (seatId: number) => participants[seatId - 1]?.name ?? `Seat ${seatId}`,
+    [participants],
+  );
+
   // Live join status: subscribe (Postgres Changes) or poll, then re-query.
   useEffect(() => {
     let active = true;
@@ -147,6 +164,7 @@ export function HostMatch({
       {tableMode ? (
         <TableMode
           seats={seats}
+          seatLabel={seatLabel}
           onBump={bump}
           onCommanderDamage={cmdDmg}
           onReset={() => setSeats(initSeats(seatCount))}
@@ -159,13 +177,16 @@ export function HostMatch({
         {seats.map((seat) => (
           <Card key={seat.id}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">Seat {seat.id}</CardTitle>
+              <CardTitle className="flex items-baseline justify-between gap-2 text-sm text-muted-foreground">
+                <span className="truncate text-foreground">{seatLabel(seat.id)}</span>
+                <span className="shrink-0 text-xs">Seat {seat.id}</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-2">
               <span
                 className="text-4xl font-bold tabular-nums"
                 aria-live="polite"
-                aria-label={`Seat ${seat.id} life: ${seat.life}`}
+                aria-label={`${seatLabel(seat.id)} life: ${seat.life}`}
               >
                 {seat.life}
               </span>
@@ -208,6 +229,7 @@ export function HostMatch({
                   seat={seat}
                   others={seats.filter((s) => s.id !== seat.id)}
                   onChange={(sourceId, delta) => cmdDmg(seat.id, sourceId, delta)}
+                  labelFor={seatLabel}
                 />
               </div>
             </CardContent>

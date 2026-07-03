@@ -101,12 +101,14 @@ function isRotated(index: number, count: number): boolean {
 
 export function TableMode({
   seats,
+  seatLabel,
   onBump,
   onCommanderDamage,
   onReset,
   onClose,
 }: {
   seats: Seat[];
+  seatLabel: (seatId: number) => string;
   onBump: (seatId: number, delta: number) => void;
   onCommanderDamage: (targetId: number, sourceId: number, delta: number) => void;
   onReset: () => void;
@@ -175,7 +177,7 @@ export function TableMode({
         >
           {ticks.map((t) => (
             <span key={t.id} className="rounded bg-muted px-1.5 py-0.5 tabular-nums">
-              Seat {t.seatId} {t.delta > 0 ? `+${t.delta}` : t.delta}
+              {seatLabel(t.seatId)} {t.delta > 0 ? `+${t.delta}` : t.delta}
             </span>
           ))}
         </div>
@@ -195,13 +197,13 @@ export function TableMode({
               count === 3 && i === 2 && "col-span-2",
             )}
           >
-            <span className="pointer-events-none absolute left-2 top-2 z-10 text-xs font-medium text-muted-foreground">
-              Seat {seat.id}
+            <span className="pointer-events-none absolute left-2 top-2 z-10 max-w-[70%] truncate text-xs font-medium text-muted-foreground">
+              {seatLabel(seat.id)}
             </span>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span
                 aria-live="polite"
-                aria-label={`Seat ${seat.id} life: ${seat.life}`}
+                aria-label={`${seatLabel(seat.id)} life: ${seat.life}`}
                 className="text-6xl font-bold tabular-nums sm:text-7xl"
               >
                 {seat.life}
@@ -209,7 +211,7 @@ export function TableMode({
             </div>
             <div className="flex h-full flex-col">
               <HoldZone
-                label={`Seat ${seat.id}: tap to add 1, hold to add 5`}
+                label={`${seatLabel(seat.id)}: tap to add 1, hold to add 5`}
                 onTap={() => change(seat.id, 1)}
                 onHold={() => change(seat.id, 5)}
                 className="h-1/2 pt-3"
@@ -217,7 +219,7 @@ export function TableMode({
                 +
               </HoldZone>
               <HoldZone
-                label={`Seat ${seat.id}: tap to subtract 1, hold to subtract 5`}
+                label={`${seatLabel(seat.id)}: tap to subtract 1, hold to subtract 5`}
                 onTap={() => change(seat.id, -1)}
                 onHold={() => change(seat.id, -5)}
                 className="h-1/2 items-end pb-3"
@@ -231,6 +233,7 @@ export function TableMode({
                 seat={seat}
                 others={seats.filter((s) => s.id !== seat.id)}
                 onChange={(sourceId, delta) => onCommanderDamage(seat.id, sourceId, delta)}
+                labelFor={seatLabel}
                 compact
               />
             </div>

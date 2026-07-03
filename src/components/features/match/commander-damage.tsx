@@ -12,13 +12,17 @@ export function CommanderDamage({
   others,
   onChange,
   compact = false,
+  labelFor,
 }: {
   seat: Seat;
   others: Seat[];
   onChange: (sourceId: number, delta: number) => void;
   compact?: boolean;
+  /** Display name for a seat id (defaults to "Seat N"). */
+  labelFor?: (id: number) => string;
 }) {
   if (others.length === 0) return null;
+  const nameFor = labelFor ?? ((id: number) => `Seat ${id}`);
 
   if (compact) {
     return (
@@ -31,7 +35,7 @@ export function CommanderDamage({
               key={o.id}
               type="button"
               onClick={() => onChange(o.id, 1)}
-              aria-label={`Seat ${seat.id}: ${dmg} commander damage from Seat ${o.id}${
+              aria-label={`${nameFor(seat.id)}: ${dmg} commander damage from ${nameFor(o.id)}${
                 lethal ? ", lethal" : ""
               }. Tap to add 1.`}
               className={cn(
@@ -67,21 +71,21 @@ export function CommanderDamage({
                 lethal ? "border-destructive text-destructive" : "border-border",
               )}
             >
-              <span aria-hidden="true" className="text-muted-foreground">
-                ⚔ from Seat {o.id}
+              <span aria-hidden="true" className="truncate text-muted-foreground">
+                ⚔ from {nameFor(o.id)}
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => onChange(o.id, -1)}
-                  aria-label={`Seat ${seat.id}: remove 1 commander damage from Seat ${o.id}`}
+                  aria-label={`${nameFor(seat.id)}: remove 1 commander damage from ${nameFor(o.id)}`}
                   className="flex h-6 w-6 items-center justify-center rounded border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   −
                 </button>
                 <span
                   className="w-8 text-center font-medium tabular-nums"
-                  aria-label={`${dmg} commander damage from Seat ${o.id}${lethal ? ", lethal" : ""}`}
+                  aria-label={`${dmg} commander damage from ${nameFor(o.id)}${lethal ? ", lethal" : ""}`}
                 >
                   {dmg}
                   {lethal ? <span aria-hidden="true"> ☠</span> : null}
@@ -89,7 +93,7 @@ export function CommanderDamage({
                 <button
                   type="button"
                   onClick={() => onChange(o.id, 1)}
-                  aria-label={`Seat ${seat.id}: add 1 commander damage from Seat ${o.id}`}
+                  aria-label={`${nameFor(seat.id)}: add 1 commander damage from ${nameFor(o.id)}`}
                   className="flex h-6 w-6 items-center justify-center rounded border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   +

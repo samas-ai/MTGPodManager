@@ -5,6 +5,7 @@ import {
   COMMANDER_LETHAL,
   initSeats,
   isCommanderDead,
+  resizeSeats,
   STARTING_LIFE,
 } from "./life";
 
@@ -43,6 +44,25 @@ describe("adjustLife", () => {
     const seats = initSeats(2);
     adjustLife(seats, 1, -1);
     expect(seats[0]?.life).toBe(40);
+  });
+});
+
+describe("resizeSeats", () => {
+  it("preserves life + commander damage of retained seats when growing", () => {
+    let seats = initSeats(2);
+    seats = adjustLife(seats, 1, -7);
+    seats = applyCommanderDamage(seats, 2, 1, 5);
+    const grown = resizeSeats(seats, 4);
+    expect(grown).toHaveLength(4);
+    expect(grown[0]?.life).toBe(33); // seat 1 kept
+    expect(grown[1]?.commanderDamage[1]).toBe(5); // seat 2 kept
+    expect(grown[2]?.life).toBe(STARTING_LIFE); // new seat fresh
+    expect(grown[3]?.id).toBe(4);
+  });
+
+  it("trims extra seats when shrinking", () => {
+    const grown = resizeSeats(initSeats(4), 2);
+    expect(grown.map((s) => s.id)).toEqual([1, 2]);
   });
 });
 
